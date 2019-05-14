@@ -92,11 +92,13 @@ class Particle:
         if not 0 <= t <= 1:
             return
 
-        u_t = (x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)
-        u_n = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+        t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / t_n
+        u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / t_n
 
-        u = -u_t / u_n
-        return Position(x1 + t * (x2 - x1), y1 + t * (y2 - y1))
+        if 0 <= t <= 1 and u > 0:
+            x = x1 + t * (x2 - x1)
+            y = y1 + t * (y2 - y1)
+            return Position(x, y)
 
 
 def _input(events):
