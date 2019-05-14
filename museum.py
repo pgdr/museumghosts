@@ -1,17 +1,19 @@
 import math
 import sys
-from time import sleep
 import random
 import pygame
-from noise import pnoise2
+from noise import pnoise1
 
 from dataclasses import dataclass
 from collections import namedtuple
 
 World = namedtuple("World", "particle walls")
 
+WIDTH = 1000
+HEIGHT = 600
 
-@dataclass(frozen=True, order=True)
+
+@dataclass(frozen=True)
 class Position:
     x: int
     y: int
@@ -35,6 +37,12 @@ class Position:
     def tup(self):
         return (self.x, self.y)
 
+    def normalize(self):
+        return Position(min(max(0, self.x), WIDTH), min(max(0, self.y), HEIGHT))
+
+    def __round__(self):
+        return int(self.x), int(self.y)
+
 
 @dataclass(frozen=True)
 class Wall:
@@ -49,23 +57,20 @@ class Wall:
 class Particle:
     pos: Position
 
+    def direcs(self):
+        for deg in range(0, 314 * 2):
+            x = 10 * math.cos(deg / 100)
+            y = 10 * math.sin(deg / 100)
+            yield Position(x, y)
+
     def draw(self, surface, walls):
-        pygame.draw.rect(surface, (255, 255, 255), pygame.Rect(self.pos.tup, (1, 1)))
-
         self._draw_walls(surface, walls)
+        pygame.draw.circle(surface, (255, 0, 0), round(self.pos), 4)
 
-    def _draw_walls(self, surface, walls, num=10):
-        dirs = []
-        for x in range(-num, num + 1):
-            for y in range(-num, num + 1):
-                x, y = x / num, y / num
-                if x == y == 0:
-                    continue
-                dirs.append(Position(x, y))
-
-        for direc in dirs:
+    def _draw_walls(self, surface, walls):
+        for direc in self.direcs():
             best = None
-            dist = 10 ** 10
+            dist = 2000
             for wall in walls:
                 pos = self.intersect(direc, wall)
                 if not pos:
@@ -76,20 +81,17 @@ class Particle:
                     best = pos
 
             if best is not None:
-                pygame.draw.line(surface, (255, 255, 0), self.pos.tup, best.tup)
+                pygame.draw.line(surface, (255, 255, 255), self.pos.tup, best.tup)
 
     def intersect(self, direc, wall):
         x1, y1 = wall.p1
         x2, y2 = wall.p2
         x3, y3 = self.pos
         x4, y4 = self.pos + direc
-        t_t = (x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)
+
         t_n = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
 
         if t_n == 0:
-            return
-        t = t_t / t_n
-        if not 0 <= t <= 1:
             return
 
         t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / t_n
@@ -103,14 +105,13 @@ class Particle:
 
 def _input(events):
     for event in events:
-        if event.type == pygame.QUIT:
+        if event.type == pygame.QUIT or event.type == pygame.KEYDOWN:
             sys.exit(0)
         else:
             return event
 
 
 def draw_world(surface, world):
-    width, height = 512, 512
     particle = world.particle
     walls = world.walls
 
@@ -124,45 +125,45 @@ def draw_world(surface, world):
     pygame.display.flip()
 
 
-def rand():
-    return random.randint(0, 512)
+def rand(max_=None):
+    if max_ is None:
+        max_ = min(WIDTH, HEIGHT)
+    return random.randint(0, max_)
 
 
 def randpos():
-    return Position(rand(), rand())
+    return Position(rand(WIDTH), rand(HEIGHT))
 
 
 def randline():
     return randpos(), randpos()
 
 
-def nextpoint(pos):
-    x, y = pos.tup
-    nx = 3 * pnoise2(x / 600, y / 600, 2)
-    ny = 3 * pnoise2(x / 700, y / 700, 2)
-    nx += x
-    ny += y
-
-    nx = min(max(25, nx), 500)
-    ny = min(max(25, ny), 500)
-    return Position(nx, ny)
-
-
 def game_loop(surface):
-    world = World(Particle(Position(100, 100)), [Wall(*randline()) for _ in range(4)])
+    world = World(Particle(Position(100, 100)), [Wall(*randline()) for _ in range(10)])
+
+    xoff = 0.0
+    yoff = 10000.0
+
     walls = world.walls
     while True:
         evt = _input(pygame.event.get())
         if evt is None or evt.type != pygame.MOUSEMOTION:
-            pos = nextpoint(world.particle.pos)
+            pos = world.particle.pos + Position(
+                WIDTH * pnoise1(xoff) // 50, HEIGHT * pnoise1(yoff) // 50
+            )
+            xoff += 0.01
+            yoff += 0.01
+            pygame.time.wait(5)
         else:
-            pos = evt.pos
+            pos = Position(*evt.pos)
+        pos = pos.normalize()
         world = World(Particle(Position(*pos)), walls)
         draw_world(surface, world)
 
 
 def main():
-    width, height = 512, 512
+    width, height = WIDTH, HEIGHT
 
     pygame.init()
     pygame.display.set_mode((width, height))
