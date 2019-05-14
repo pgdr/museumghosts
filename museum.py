@@ -7,10 +7,30 @@ from noise import pnoise1
 from dataclasses import dataclass
 from collections import namedtuple
 
-World = namedtuple("World", "particle walls")
+World = namedtuple("World", "particle antiparticle walls")
 
 WIDTH = 1000
 HEIGHT = 600
+
+
+def intersects(line1, line2):
+    x1, y1 = line1.p1
+    x2, y2 = line1.p2
+    x3, y3 = line2.p1
+    x4, y4 = line2.p2
+
+    t_n = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+
+    if t_n == 0:
+        return
+
+    t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / t_n
+    u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / t_n
+
+    if 0 <= t <= 1 and 0 <= u <= 1:
+        x = x1 + t * (x2 - x1)
+        y = y1 + t * (y2 - y1)
+        return Position(x, y)
 
 
 @dataclass(frozen=True)
@@ -38,7 +58,7 @@ class Position:
         return (self.x, self.y)
 
     def normalize(self):
-        return Position(min(max(0, self.x), WIDTH), min(max(0, self.y), HEIGHT))
+        return Position(min(max(8, self.x), WIDTH - 8), min(max(8, self.y), HEIGHT - 8))
 
     def __round__(self):
         return int(self.x), int(self.y)
@@ -63,9 +83,9 @@ class Particle:
             y = 10 * math.sin(deg / 100)
             yield Position(x, y)
 
-    def draw(self, surface, walls):
+    def draw(self, surface, walls=tuple(), color=(255, 0, 0)):
         self._draw_walls(surface, walls)
-        pygame.draw.circle(surface, (255, 0, 0), round(self.pos), 4)
+        pygame.draw.circle(surface, color, round(self.pos), 4)
 
     def _draw_walls(self, surface, walls):
         for direc in self.direcs():
@@ -103,6 +123,17 @@ class Particle:
             return Position(x, y)
 
 
+def draw_ghost(surface, world):
+    pos = world.particle
+    apos = world.antiparticle
+    walls = world.walls
+    line = Wall(pos.pos, apos.pos)
+    for wall in walls:
+        if intersects(line, wall):
+            return False
+    pygame.draw.circle(surface, (255, 0, 255), round(apos.pos), 4)
+
+
 def _input(events):
     for event in events:
         if event.type == pygame.QUIT or event.type == pygame.KEYDOWN:
@@ -113,6 +144,7 @@ def _input(events):
 
 def draw_world(surface, world):
     particle = world.particle
+    antiparticle = world.antiparticle
     walls = world.walls
 
     surface.fill((0, 0, 0))
@@ -120,7 +152,8 @@ def draw_world(surface, world):
     for wall in walls:
         wall.draw(surface)
 
-    particle.draw(surface, walls)
+    particle.draw(surface, walls=walls)
+    draw_ghost(surface, world)
 
     pygame.display.flip()
 
@@ -140,25 +173,39 @@ def randline():
 
 
 def game_loop(surface):
-    world = World(Particle(Position(100, 100)), [Wall(*randline()) for _ in range(10)])
+    particle = Particle(Position(100, 100))
+    antiparticle = Particle(Position(200, 200))
 
-    xoff = 0.0
-    yoff = 10000.0
+    bnw = Position(0, 0)
+    bne = Position(WIDTH, 0)
+    bsw = Position(0, HEIGHT)
+    bse = Position(WIDTH, HEIGHT)
+
+    boundary = [Wall(bnw, bne), Wall(bne, bse), Wall(bse, bsw), Wall(bsw, bnw)]
+
+    world = World(
+        particle, antiparticle, boundary + [Wall(*randline()) for _ in range(10)]
+    )
+
+    xoff = 10.0
+    yoff = 100.0
 
     walls = world.walls
     while True:
         evt = _input(pygame.event.get())
-        if evt is None or evt.type != pygame.MOUSEMOTION:
-            pos = world.particle.pos + Position(
-                WIDTH * pnoise1(xoff) // 50, HEIGHT * pnoise1(yoff) // 50
-            )
-            xoff += 0.01
-            yoff += 0.01
-            pygame.time.wait(5)
-        else:
-            pos = Position(*evt.pos)
-        pos = pos.normalize()
-        world = World(Particle(Position(*pos)), walls)
+        pos = Position(WIDTH * pnoise1(xoff) // 100, HEIGHT * pnoise1(yoff) // 100)
+
+        xoff += 10.01
+        yoff += 20.01
+        antiparticle = Particle((antiparticle.pos + pos).normalize())
+        if evt is not None and evt.type == pygame.MOUSEMOTION:
+            pos = Position(*evt.pos).normalize()
+            particle = Particle(Position(*pos))
+
+        world = World(particle, antiparticle, walls)
+        if particle.pos.dist(antiparticle.pos) < 5:
+            print("You won")
+            exit("0")
         draw_world(surface, world)
 
 
