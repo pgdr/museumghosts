@@ -1,9 +1,9 @@
 import math
 import sys
-import numpy as np
 from time import sleep
 import random
 import pygame
+from noise import pnoise2
 
 from dataclasses import dataclass
 from collections import namedtuple
@@ -23,8 +23,13 @@ class Position:
         yield self.x
         yield self.y
 
-    def draw(self, surface):
+    def draw(self, surface: pygame.Surface):
         pygame.draw.rect(surface, (255, 255, 255), self.x, self.y, 1, 1)
+
+    def dist(self, other: "Position") -> float:
+        xs = (self.x - other.x) ** 2
+        ys = (self.y - other.y) ** 2
+        return math.sqrt(xs + ys)
 
     @property
     def tup(self):
@@ -37,17 +42,19 @@ class Wall:
     p2: Position
 
     def draw(self, surface):
-        pygame.draw.line(surface, (255, 255, 255), self.p1.tup, self.p2.tup, 10)
+        pygame.draw.line(surface, (255, 255, 255), self.p1.tup, self.p2.tup, 2)
 
 
 @dataclass(frozen=True)
 class Particle:
     pos: Position
 
-    def draw(self, surface):
+    def draw(self, surface, walls):
         pygame.draw.rect(surface, (255, 255, 255), pygame.Rect(self.pos.tup, (1, 1)))
 
-    def draw_wall(self, surface, wall, num=3):
+        self._draw_walls(surface, walls)
+
+    def _draw_walls(self, surface, walls, num=10):
         dirs = []
         for x in range(-num, num + 1):
             for y in range(-num, num + 1):
@@ -55,14 +62,21 @@ class Particle:
                 if x == y == 0:
                     continue
                 dirs.append(Position(x, y))
+
         for direc in dirs:
-            print(direc)
+            best = None
+            dist = 10 ** 10
+            for wall in walls:
+                pos = self.intersect(direc, wall)
+                if not pos:
+                    continue
+                dist_ = self.pos.dist(pos)
+                if dist_ < dist:
+                    dist = dist_
+                    best = pos
 
-            pos = self.intersect(direc, wall)
-            if not pos:
-                continue
-
-            pygame.draw.line(surface, (255, 255, 0), self.pos.tup, pos.tup)
+            if best is not None:
+                pygame.draw.line(surface, (255, 255, 0), self.pos.tup, best.tup)
 
     def intersect(self, direc, wall):
         x1, y1 = wall.p1
@@ -99,11 +113,11 @@ def draw_world(surface, world):
     walls = world.walls
 
     surface.fill((0, 0, 0))
-    particle.draw(surface)
 
     for wall in walls:
         wall.draw(surface)
-        particle.draw_wall(surface, wall)
+
+    particle.draw(surface, walls)
 
     pygame.display.flip()
 
@@ -120,17 +134,29 @@ def randline():
     return randpos(), randpos()
 
 
+def nextpoint(pos):
+    x, y = pos.tup
+    nx = 3 * pnoise2(x / 600, y / 600, 2)
+    ny = 3 * pnoise2(x / 700, y / 700, 2)
+    nx += x
+    ny += y
+
+    nx = min(max(25, nx), 500)
+    ny = min(max(25, ny), 500)
+    return Position(nx, ny)
+
+
 def game_loop(surface):
     world = World(Particle(Position(100, 100)), [Wall(*randline()) for _ in range(4)])
     walls = world.walls
     while True:
         evt = _input(pygame.event.get())
         if evt is None or evt.type != pygame.MOUSEMOTION:
-            # sleep(0.2)
-            continue
-
-        pos = evt.pos
-        draw_world(surface, World(Particle(Position(*pos)), walls))
+            pos = nextpoint(world.particle.pos)
+        else:
+            pos = evt.pos
+        world = World(Particle(Position(*pos)), walls)
+        draw_world(surface, world)
 
 
 def main():
