@@ -7,7 +7,7 @@ from noise import pnoise1
 from dataclasses import dataclass
 from collections import namedtuple
 
-World = namedtuple("World", "particle antiparticle walls")
+World = namedtuple("World", "particle ghosts walls")
 
 WIDTH = 1000
 HEIGHT = 600
@@ -107,15 +107,15 @@ class Particle:
                 pygame.draw.line(surface, (255, 255, 255), self.pos.tup, best.tup)
 
 
-def draw_ghost(surface, world):
+def draw_ghosts(surface, world):
     pos = world.particle
-    apos = world.antiparticle
+    ghost = world.ghosts[0]
     walls = world.walls
-    line = Wall(pos.pos, apos.pos)
+    line = Wall(pos.pos, ghost.pos)
     for wall in walls:
         if intersects(line, wall, ray=False):
             return False
-    pygame.draw.circle(surface, (255, 0, 255), round(apos.pos), 4)
+    pygame.draw.circle(surface, (255, 0, 255), round(ghost.pos), 4)
 
 
 def _input(events):
@@ -128,7 +128,7 @@ def _input(events):
 
 def draw_world(surface, world):
     particle = world.particle
-    antiparticle = world.antiparticle
+    ghosts = world.ghosts
     walls = world.walls
 
     surface.fill((0, 0, 0))
@@ -137,7 +137,7 @@ def draw_world(surface, world):
         wall.draw(surface)
 
     particle.draw(surface, walls=walls)
-    draw_ghost(surface, world)
+    draw_ghosts(surface, world)
 
     pygame.display.flip()
 
@@ -158,7 +158,7 @@ def randline():
 
 def game_loop(surface):
     particle = Particle(Position(100, 100))
-    antiparticle = Particle(Position(200, 200))
+    ghosts = [Particle(Position(200, 200))]
 
     bnw = Position(0, 0)
     bne = Position(WIDTH, 0)
@@ -167,9 +167,7 @@ def game_loop(surface):
 
     boundary = [Wall(bnw, bne), Wall(bne, bse), Wall(bse, bsw), Wall(bsw, bnw)]
 
-    world = World(
-        particle, antiparticle, boundary + [Wall(*randline()) for _ in range(10)]
-    )
+    world = World(particle, ghosts, boundary + [Wall(*randline()) for _ in range(10)])
 
     xoff = 10.0
     yoff = 100.0
@@ -181,13 +179,13 @@ def game_loop(surface):
 
         xoff += 10.01
         yoff += 20.01
-        antiparticle = Particle((antiparticle.pos + pos).normalize())
+        ghosts = [Particle((ghosts[0].pos + pos).normalize())]
         if evt is not None and evt.type == pygame.MOUSEMOTION:
             pos = Position(*evt.pos).normalize()
             particle = Particle(Position(*pos))
 
-        world = World(particle, antiparticle, walls)
-        if particle.pos.dist(antiparticle.pos) < 5:
+        world = World(particle, ghosts, walls)
+        if particle.pos.dist(ghosts[0].pos) < 5:
             print("You won")
             exit("0")
         draw_world(surface, world)
