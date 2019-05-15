@@ -79,12 +79,12 @@ def average_speed(hist):
 
 
 def game_loop(surface):
-    particle = Particle(Position(100, 100))
+    particle = Particle(Position(WIDTH // 2, HEIGHT // 2))
     ghosts = [
-        Particle(Position(100, 200)),
-        Particle(Position(100, 300)),
-        Particle(Position(200, 200)),
-        Particle(Position(200, 300)),
+        Particle(randpos()),
+        Particle(randpos()),
+        Particle(randpos()),
+        Particle(randpos()),
     ]
 
     bnw = Position(0, 0)
@@ -117,9 +117,16 @@ def game_loop(surface):
             pass
 
         world = World(particle, ghosts, walls)
-        if particle.pos.dist(ghosts[0].pos) <= 10:
-            print("You won")
-            exit("0")
+        to_del = None
+        for ghost in ghosts:
+            if particle.pos.dist(ghost.pos) <= 10:
+                to_del = ghost
+                break
+        if to_del:
+            world.ghosts.remove(to_del)
+        if not world.ghosts:
+            exit("You won")
+
         draw_world(surface, world, speed, direction=direction)
 
 
