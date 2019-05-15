@@ -7,8 +7,10 @@ from noise import pnoise1
 from dataclasses import dataclass
 from collections import namedtuple
 
+
 World = namedtuple("World", "particle ghosts walls")
 
+from .forgetlist import Forgetlist
 from .util import Position
 from .util import intersects
 
@@ -29,18 +31,27 @@ class Wall:
 class Particle:
     pos: Position
 
-    def direcs(self):
-        for deg in range(0, 314 * 2):
+    def direcs(self, fov=314 * 2, rot=0):
+        """Given field of view (fov) = 200*pi and rotation=0 yields
+        actual fov."""
+        for deg in range(int(rot), int(fov + rot)):
             x = 10 * math.cos(deg / 100)
             y = 10 * math.sin(deg / 100)
             yield Position(x, y)
 
-    def draw(self, surface, walls=tuple(), color=(255, 0, 0)):
-        self._draw_walls(surface, walls)
+    def draw(
+        self, surface, walls=tuple(), color=(255, 0, 0), speed=0, direction=(1, 0)
+    ):
+        self._draw_walls(surface, walls, speed=speed, direction=direction)
         pygame.draw.circle(surface, color, round(self.pos), 4)
 
-    def _draw_walls(self, surface, walls):
-        for direc in self.direcs():
+    def _draw_walls(self, surface, walls, speed, direction):
+        fov = max(5, (314 * 2) - speed)
+        rot = math.atan2(direction[1], direction[0]) * (180 / math.pi)
+        print(fov)
+        print(rot)
+
+        for direc in self.direcs(fov, rot):
             best = None
             dist = 2000
             for wall in walls:
@@ -77,7 +88,7 @@ def _input(events):
             return event
 
 
-def draw_world(surface, world):
+def draw_world(surface, world, speed, direction):
     particle = world.particle
     ghosts = world.ghosts
     walls = world.walls
@@ -87,7 +98,7 @@ def draw_world(surface, world):
     for wall in walls:
         wall.draw(surface)
 
-    particle.draw(surface, walls=walls)
+    particle.draw(surface, walls=walls, speed=speed, direction=direction)
     draw_ghosts(surface, world)
 
     pygame.display.flip()
@@ -107,6 +118,17 @@ def randline():
     return randpos(), randpos()
 
 
+def total_dist_travelled(hist):
+    lst = [x for x in hist]
+    if len(lst) < 2:
+        return 0
+    return sum(lst[i].dist(lst[i + 1]) for i in range(len(lst) - 1))
+
+
+def average_speed(hist):
+    return total_dist_travelled(hist) / hist.duration
+
+
 def game_loop(surface):
     particle = Particle(Position(100, 100))
     ghosts = [Particle(Position(200, 200))]
@@ -124,6 +146,7 @@ def game_loop(surface):
     yoff = 100.0
 
     walls = world.walls
+    history = Forgetlist(0.5)  # remember last half second of events
     while True:
         evt = _input(pygame.event.get())
         pos = Position(WIDTH * pnoise1(xoff) // 100, HEIGHT * pnoise1(yoff) // 100)
@@ -131,15 +154,20 @@ def game_loop(surface):
         xoff += 10.01
         yoff += 20.01
         ghosts = [Particle(ghosts[0].pos + pos)]
+        speed = 0
+        direction = (1, 0)
         if evt is not None and evt.type == pygame.MOUSEMOTION:
             pos = Position(*evt.pos)
             particle = Particle(Position(*pos))
+            history.append(pos)
+            speed = average_speed(history)
+            direction = (history[-1] - history[0]).tup
 
         world = World(particle, ghosts, walls)
         if particle.pos.dist(ghosts[0].pos) < 5:
             print("You won")
             exit("0")
-        draw_world(surface, world)
+        draw_world(surface, world, speed, direction=direction)
 
 
 def main():

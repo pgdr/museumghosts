@@ -26,6 +26,10 @@ class Forgetlist:
         diff = now - (self._lst[idx].timestamp + self._duration)
         return diff < 0
 
+    @property
+    def duration(self):
+        return self._duration
+
     def __ffw(self):
         if self._idx > self.maxsize:
             self._lst = self._lst[self._idx :]
@@ -57,7 +61,9 @@ class Forgetlist:
 
     def __getitem__(self, idx):
         self.__ffw()
-        return self._lst[self._idx + idx]
+        return (
+            self._lst[self._idx + idx].payload if idx >= 0 else self._lst[idx].payload
+        )
 
     def __str__(self):
         elts = ",".join([str(x) for x in self])
