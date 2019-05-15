@@ -1,46 +1,26 @@
 import math
 import sys
 import random
+from collections import namedtuple
 import pygame
-
-from .gameobjects import *
-
-ghost_png = pygame.image.load("ghost.png")
-ghost_png = pygame.transform.scale(ghost_png, (24, 24))
-
-
 from noise import pnoise1
 
-from collections import namedtuple
+from .gameobjects import *
+from .forgetlist import Forgetlist
+from .util import Position
+from .util import intersects
 
 
 World = namedtuple("World", "particle ghosts walls")
 
-from .forgetlist import Forgetlist
-from .util import Position
-from .util import intersects
 
 WIDTH = 1000
 HEIGHT = 600
 
 
-def draw_ghosts(surface, world):
-    """Draw all ghosts within view."""
-    pos = world.particle
-    walls = world.walls
-
-    for ghost in world.ghosts:
-        line = Wall(pos.pos, ghost.pos)
-        for wall in walls:
-            if intersects(line, wall, ray=False):
-                break
-        else:
-            surface.blit(ghost_png, ghost.pos.tup)
-
-
 def _input(events):
     for event in events:
-        if event.type == pygame.QUIT or event.type == pygame.KEYDOWN:
+        if event.type in (pygame.QUIT, pygame.KEYDOWN):
             sys.exit(0)
         else:
             return event
@@ -56,8 +36,7 @@ def draw_world(surface, world, speed, direction):
     for wall in walls:
         wall.draw(surface)
 
-    particle.draw(surface, walls=walls, speed=speed, direction=direction)
-    draw_ghosts(surface, world)
+    particle.draw(surface, world=world, speed=speed, direction=direction)
 
     pygame.display.flip()
 
@@ -89,7 +68,7 @@ def average_speed(hist):
 
 def game_loop(surface):
     particle = Particle(Position(100, 100))
-    ghosts = [Particle(Position(200, 200))]
+    ghosts = [Particle(Position(500, 700))]
 
     bnw = Position(0, 0)
     bne = Position(WIDTH, 0)

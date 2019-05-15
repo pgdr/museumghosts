@@ -5,6 +5,8 @@ from .util import Position
 from .util import intersects
 import pygame
 
+ghost_png = pygame.image.load("ghost.png")
+ghost_png = pygame.transform.scale(ghost_png, (24, 24))
 
 TAU = 2 * math.pi
 
@@ -37,15 +39,20 @@ class Particle:
             fov -= 0.01
             yield Position(x, y)
 
-    def draw(
-        self, surface, walls=tuple(), color=(255, 0, 0), speed=0, direction=(1, 0)
-    ):
-        self._draw_walls(surface, walls, speed=speed, direction=direction)
+    def _get_fov_rot(self, speed, direction):
+        fov = max(0.1, TAU - (speed / 100.0))
+        rot = (TAU + math.atan2(direction[1], direction[0])) % TAU
+        return fov, rot
+
+    def draw(self, surface, world=None, speed=0, direction=(1, 0)):
+        fov, rot = self._get_fov_rot(speed, direction)
+        color = (255, 0, 0)
+        walls = world.walls
+        self._draw_walls(surface, walls, fov, rot)
+        self._draw_ghosts(surface, world, fov=fov, rot=rot)
         pygame.draw.circle(surface, color, round(self.pos), 4)
 
-    def _draw_walls(self, surface, walls, speed, direction):
-        fov = max(0.1, TAU - (speed / 100.0))
-        rot = (TAU + math.atan2(direction[1], direction[0])) % TAU  # radians
+    def _draw_walls(self, surface, walls, fov, rot):
 
         for direc in self.direcs(fov, rot):
             best = None
@@ -61,3 +68,16 @@ class Particle:
 
             if best is not None:
                 pygame.draw.line(surface, (255, 255, 255), self.pos.tup, best.tup)
+
+    def _draw_ghosts(self, surface, world, fov, rot):
+        """Draw all ghosts within view."""
+        pos = world.particle
+        walls = world.walls
+        for ghost in world.ghosts:
+            line = Wall(pos.pos, ghost.pos)
+            for wall in walls:
+                if intersects(line, wall, ray=False):
+                    break
+            else:
+                # TODO check that line falls within fov
+                surface.blit(ghost_png, ghost.pos.tup)
