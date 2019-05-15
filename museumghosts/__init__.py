@@ -9,62 +9,11 @@ from collections import namedtuple
 
 World = namedtuple("World", "particle ghosts walls")
 
+from .util import Position
+from .util import intersects
+
 WIDTH = 1000
 HEIGHT = 600
-
-
-def intersects(line1, line2, ray=True):
-    x1, y1 = line1.p1
-    x2, y2 = line1.p2
-    x3, y3 = line2.p1
-    x4, y4 = line2.p2
-
-    t_n = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
-
-    if t_n == 0:
-        return
-
-    t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / t_n
-    u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / t_n
-
-    if not 0 <= t <= 1:
-        return
-    test = u > 0 if ray else 0 <= u <= 1
-    if test:
-        x = x1 + t * (x2 - x1)
-        y = y1 + t * (y2 - y1)
-        return Position(x, y)
-
-
-@dataclass(frozen=True)
-class Position:
-    x: int
-    y: int
-
-    def __add__(self, other: "Position") -> "Position":
-        return Position(self.x + other.x, self.y + other.y)
-
-    def __iter__(self):
-        yield self.x
-        yield self.y
-
-    def draw(self, surface: pygame.Surface):
-        pygame.draw.rect(surface, (255, 255, 255), self.x, self.y, 1, 1)
-
-    def dist(self, other: "Position") -> float:
-        xs = (self.x - other.x) ** 2
-        ys = (self.y - other.y) ** 2
-        return math.sqrt(xs + ys)
-
-    @property
-    def tup(self):
-        return (self.x, self.y)
-
-    def normalize(self):
-        return Position(min(max(8, self.x), WIDTH - 8), min(max(8, self.y), HEIGHT - 8))
-
-    def __round__(self):
-        return int(self.x), int(self.y)
 
 
 @dataclass(frozen=True)
@@ -108,14 +57,16 @@ class Particle:
 
 
 def draw_ghosts(surface, world):
+    """Draw all ghosts within view."""
     pos = world.particle
-    ghost = world.ghosts[0]
     walls = world.walls
-    line = Wall(pos.pos, ghost.pos)
-    for wall in walls:
-        if intersects(line, wall, ray=False):
-            return False
-    pygame.draw.circle(surface, (255, 0, 255), round(ghost.pos), 4)
+
+    for ghost in world.ghosts:
+        line = Wall(pos.pos, ghost.pos)
+        for wall in walls:
+            if intersects(line, wall, ray=False):
+                return False
+        pygame.draw.circle(surface, (255, 0, 255), round(ghost.pos), 4)
 
 
 def _input(events):
@@ -179,9 +130,9 @@ def game_loop(surface):
 
         xoff += 10.01
         yoff += 20.01
-        ghosts = [Particle((ghosts[0].pos + pos).normalize())]
+        ghosts = [Particle(ghosts[0].pos + pos)]
         if evt is not None and evt.type == pygame.MOUSEMOTION:
-            pos = Position(*evt.pos).normalize()
+            pos = Position(*evt.pos)
             particle = Particle(Position(*pos))
 
         world = World(particle, ghosts, walls)
