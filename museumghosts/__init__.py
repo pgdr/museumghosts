@@ -13,7 +13,7 @@ WIDTH = 1000
 HEIGHT = 600
 
 
-def intersects(line1, line2):
+def intersects(line1, line2, ray=True):
     x1, y1 = line1.p1
     x2, y2 = line1.p2
     x3, y3 = line2.p1
@@ -27,7 +27,10 @@ def intersects(line1, line2):
     t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / t_n
     u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / t_n
 
-    if 0 <= t <= 1 and 0 <= u <= 1:
+    if not 0 <= t <= 1:
+        return
+    test = u > 0 if ray else 0 <= u <= 1
+    if test:
         x = x1 + t * (x2 - x1)
         y = y1 + t * (y2 - y1)
         return Position(x, y)
@@ -92,7 +95,7 @@ class Particle:
             best = None
             dist = 2000
             for wall in walls:
-                pos = self.intersect(direc, wall)
+                pos = intersects(wall, Wall(self.pos, self.pos + direc), ray=True)
                 if not pos:
                     continue
                 dist_ = self.pos.dist(pos)
@@ -103,25 +106,6 @@ class Particle:
             if best is not None:
                 pygame.draw.line(surface, (255, 255, 255), self.pos.tup, best.tup)
 
-    def intersect(self, direc, wall):
-        x1, y1 = wall.p1
-        x2, y2 = wall.p2
-        x3, y3 = self.pos
-        x4, y4 = self.pos + direc
-
-        t_n = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
-
-        if t_n == 0:
-            return
-
-        t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / t_n
-        u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / t_n
-
-        if 0 <= t <= 1 and u > 0:
-            x = x1 + t * (x2 - x1)
-            y = y1 + t * (y2 - y1)
-            return Position(x, y)
-
 
 def draw_ghost(surface, world):
     pos = world.particle
@@ -129,7 +113,7 @@ def draw_ghost(surface, world):
     walls = world.walls
     line = Wall(pos.pos, apos.pos)
     for wall in walls:
-        if intersects(line, wall):
+        if intersects(line, wall, ray=False):
             return False
     pygame.draw.circle(surface, (255, 0, 255), round(apos.pos), 4)
 

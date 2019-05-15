@@ -1,1 +1,3 @@
-# museum ghost, obviously
+# museum ghosts, obviously
+
+a game of life and death
