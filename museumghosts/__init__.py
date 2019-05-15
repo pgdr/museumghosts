@@ -2,6 +2,11 @@ import math
 import sys
 import random
 import pygame
+
+ghost_png = pygame.image.load("ghost.png")
+ghost_png = pygame.transform.scale(ghost_png, (24, 24))
+
+
 from noise import pnoise1
 
 from dataclasses import dataclass
@@ -17,6 +22,8 @@ from .util import intersects
 WIDTH = 1000
 HEIGHT = 600
 
+TAU = 2 * math.pi
+
 
 @dataclass(frozen=True)
 class Wall:
@@ -31,12 +38,19 @@ class Wall:
 class Particle:
     pos: Position
 
-    def direcs(self, fov=314 * 2, rot=0):
-        """Given field of view (fov) = 200*pi and rotation=0 yields
-        actual fov."""
-        for deg in range(int(rot), int(fov + rot)):
-            x = 10 * math.cos(deg / 100)
-            y = 10 * math.sin(deg / 100)
+    def direcs(self, fov=TAU, rot=0.0):
+        """Given field of view fov and rotation in radians yields actual fov.
+
+        """
+        assert 0 <= fov <= TAU, f"fov was not in [0,2pi]: {fov}"
+        assert 0 <= rot <= TAU, f"rot was not in [0,2pi]: {rot}"
+        rad = rot + math.pi  # rotate half way agains direction
+        while fov >= 0:
+            x = math.cos(rad)
+            y = math.sin(rad)
+            rad += 0.01
+            rad %= TAU
+            fov -= 0.01
             yield Position(x, y)
 
     def draw(
@@ -46,10 +60,8 @@ class Particle:
         pygame.draw.circle(surface, color, round(self.pos), 4)
 
     def _draw_walls(self, surface, walls, speed, direction):
-        fov = max(5, (314 * 2) - speed)
-        rot = math.atan2(direction[1], direction[0]) * (180 / math.pi)
-        print(fov)
-        print(rot)
+        fov = max(0.1, TAU - (speed / 100.0))
+        rot = (TAU + math.atan2(direction[1], direction[0])) % TAU  # radians
 
         for direc in self.direcs(fov, rot):
             best = None
@@ -76,8 +88,9 @@ def draw_ghosts(surface, world):
         line = Wall(pos.pos, ghost.pos)
         for wall in walls:
             if intersects(line, wall, ray=False):
-                return False
-        pygame.draw.circle(surface, (255, 0, 255), round(ghost.pos), 4)
+                break
+        else:
+            surface.blit(ghost_png, ghost.pos.tup)
 
 
 def _input(events):
@@ -146,7 +159,7 @@ def game_loop(surface):
     yoff = 100.0
 
     walls = world.walls
-    history = Forgetlist(0.5)  # remember last half second of events
+    history = Forgetlist(3.0)  # remember last half second of events
     while True:
         evt = _input(pygame.event.get())
         pos = Position(WIDTH * pnoise1(xoff) // 100, HEIGHT * pnoise1(yoff) // 100)
@@ -160,11 +173,14 @@ def game_loop(surface):
             pos = Position(*evt.pos)
             particle = Particle(Position(*pos))
             history.append(pos)
-            speed = average_speed(history)
+        speed = average_speed(history)
+        try:
             direction = (history[-1] - history[0]).tup
+        except IndexError:
+            pass
 
         world = World(particle, ghosts, walls)
-        if particle.pos.dist(ghosts[0].pos) < 5:
+        if particle.pos.dist(ghosts[0].pos) <= 10:
             print("You won")
             exit("0")
         draw_world(surface, world, speed, direction=direction)
