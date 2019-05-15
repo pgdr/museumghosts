@@ -16,6 +16,18 @@ World = namedtuple("World", "particle ghosts walls")
 
 WIDTH = 1000
 HEIGHT = 600
+_PERLINX = 10.0
+_PERLINY = 2000.0
+
+
+def perlin(x, y):
+    global WIDTH, HEIGTH, _PERLINX, _PERLINY
+    x = WIDTH * pnoise1(_PERLINX + x) // 100
+    y = HEIGHT * pnoise1(_PERLINY + y) // 100
+    _PERLINX += 1.01
+    _PERLINY += 0.01
+    pos = Position(x, y)
+    return pos
 
 
 def _input(events):
@@ -68,7 +80,12 @@ def average_speed(hist):
 
 def game_loop(surface):
     particle = Particle(Position(100, 100))
-    ghosts = [Particle(Position(500, 700))]
+    ghosts = [
+        Particle(Position(100, 200)),
+        Particle(Position(100, 300)),
+        Particle(Position(200, 200)),
+        Particle(Position(200, 300)),
+    ]
 
     bnw = Position(0, 0)
     bne = Position(WIDTH, 0)
@@ -79,18 +96,14 @@ def game_loop(surface):
 
     world = World(particle, ghosts, boundary + [Wall(*randline()) for _ in range(10)])
 
-    xoff = 10.0
-    yoff = 100.0
-
     walls = world.walls
     history = Forgetlist(3.0)  # remember last half second of events
     while True:
         evt = _input(pygame.event.get())
-        pos = Position(WIDTH * pnoise1(xoff) // 100, HEIGHT * pnoise1(yoff) // 100)
 
-        xoff += 10.01
-        yoff += 20.01
-        ghosts = [Particle(ghosts[0].pos + pos)]
+        ghosts = [
+            Particle(ghost.pos + perlin(*ghost.pos.tup)) for ghost in world.ghosts
+        ]
         speed = 0
         direction = (1, 0)
         if evt is not None and evt.type == pygame.MOUSEMOTION:
