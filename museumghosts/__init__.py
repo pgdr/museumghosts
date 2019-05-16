@@ -114,15 +114,16 @@ def game_loop(surface):
         ]
         speed = 0
         direction = (1, 0)
-        if evt is not None and evt.type == pygame.MOUSEMOTION:
-            pos = Position(*evt.pos)
-            particle = Particle(Position(*pos))
-            history.append(pos)
-        if evt is not None and evt.type == pygame.MOUSEBUTTONDOWN:
-            radius = max(1, 20 - 5 * len(world.explosions))
-            world.explosions.append(
-                Explosion(pos=pos, start=now, ttl=1.0, radius=radius)
-            )
+        if evt is not None:
+            if evt.type == pygame.MOUSEMOTION:
+                pos = Position(*evt.pos)
+                particle = Particle(Position(*pos))
+                history.append(pos)
+            elif evt.type == pygame.MOUSEBUTTONDOWN:
+                radius = max(1, 20 - 5 * len(world.explosions))
+                world.explosions.append(
+                    Explosion(pos=pos, start=now, ttl=1.0, radius=radius)
+                )
         speed = average_speed(history)
         try:
             direction = (history[-1] - history[0]).tup

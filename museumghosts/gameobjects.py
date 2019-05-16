@@ -93,10 +93,10 @@ class Explosion:
     def draw(self, surface, now):
         if not self.alive(now):
             return
-        done = max(1, (self.ttl - self.age(now)))
-        red = (done * 255) / self.ttl
-        brightness = (math.log(done) * 255) / self.ttl
-        col = (red, brightness, brightness)
+        done = max(1, 255 * (self.ttl - self.age(now)))
+        red = done / self.ttl
+        brightness = (2.2 ** math.log(done)) / self.ttl
+        col = (red, brightness, 0)
         pygame.draw.circle(surface, col, round(self.pos), self.radius)
 
     def age(self, now):
