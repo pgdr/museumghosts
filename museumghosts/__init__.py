@@ -11,7 +11,7 @@ from .util import Position
 from .util import intersects
 
 
-World = namedtuple("World", "particle ghosts walls")
+World = namedtuple("World", "particle ghosts walls explosions")
 
 
 WIDTH = 1000
@@ -49,6 +49,8 @@ def draw_world(surface, world, speed, direction):
         wall.draw(surface)
 
     particle.draw(surface, world=world, speed=speed, direction=direction)
+    for explosion in world.explosions:
+        explosion.draw(surface, time.time())
 
     pygame.display.flip()
 
@@ -94,11 +96,17 @@ def game_loop(surface):
 
     boundary = [Wall(bnw, bne), Wall(bne, bse), Wall(bse, bsw), Wall(bsw, bnw)]
 
-    world = World(particle, ghosts, boundary + [Wall(*randline()) for _ in range(10)])
+    world = World(
+        particle,
+        ghosts,
+        boundary + [Wall(*randline()) for _ in range(10)],
+        Forgetlist(10.0),
+    )
 
     walls = world.walls
     history = Forgetlist(3.0)  # remember last half second of events
     while True:
+        now = time.time()
         evt = _input(pygame.event.get())
 
         ghosts = [
@@ -110,20 +118,28 @@ def game_loop(surface):
             pos = Position(*evt.pos)
             particle = Particle(Position(*pos))
             history.append(pos)
+        if evt is not None and evt.type == pygame.MOUSEBUTTONDOWN:
+            world.explosions.append(Explosion(pos=pos, start=now, ttl=1.0, radius=20))
         speed = average_speed(history)
         try:
             direction = (history[-1] - history[0]).tup
         except IndexError:
             pass
 
-        world = World(particle, ghosts, walls)
-        to_del = None
-        for ghost in ghosts:
-            if particle.pos.dist(ghost.pos) <= 10:
-                to_del = ghost
-                break
-        if to_del:
-            world.ghosts.remove(to_del)
+        world = World(particle, ghosts, walls, world.explosions)
+
+        to_del = []
+        for ghost in world.ghosts:
+            for explosion in world.explosions:
+                if (
+                    explosion.alive(now)
+                    and ghost.pos.dist(explosion.pos) <= explosion.radius
+                ):
+                    print(f"exploded {ghost}")
+                    to_del.append(ghost)
+        for ghost in to_del:
+            world.ghosts.remove(ghost)
+
         if not world.ghosts:
             exit("You won")
 

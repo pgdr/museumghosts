@@ -1,5 +1,5 @@
 import math
-
+import time
 from dataclasses import dataclass
 from .util import Position
 from .util import intersects
@@ -81,3 +81,29 @@ class Particle:
             else:
                 # TODO check that line falls within fov
                 surface.blit(ghost_png, ghost.pos.tup)
+
+
+@dataclass(frozen=True)
+class Explosion:
+    pos: Position
+    start: float
+    ttl: float
+    radius: float
+
+    def draw(self, surface, now):
+        if not self.alive(now):
+            return
+        done = max(1, (self.ttl - self.age(now)))
+        red = (done * 255) / self.ttl
+        brightness = (math.log(done) * 255) / self.ttl
+        col = (red, brightness, brightness)
+        pygame.draw.circle(surface, col, round(self.pos), self.radius)
+
+    def age(self, now):
+        return now - self.start
+
+    def alive(self, now):
+        return self.age(now) < self.ttl
+
+    def destroyed(self, now):
+        return not self.alive(now)
