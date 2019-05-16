@@ -51,3 +51,8 @@ class Position:
 
     def __round__(self):
         return int(self.x), int(self.y)
+
+    def normalize(self, world):
+        return Position(
+            min(max(0, self.x), world.size.x), min(max(0, self.y), world.size.y)
+        )

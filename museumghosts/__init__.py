@@ -11,11 +11,12 @@ from .util import Position
 from .util import intersects
 
 
-World = namedtuple("World", "particle ghosts walls explosions")
+World = namedtuple("World", "size particle ghosts walls explosions")
 
 
 WIDTH = 1000
 HEIGHT = 600
+SIZE = Position(WIDTH, HEIGHT)
 _PERLINX = 10.0
 _PERLINY = 2000.0
 
@@ -97,6 +98,7 @@ def game_loop(surface):
     boundary = [Wall(bnw, bne), Wall(bne, bse), Wall(bse, bsw), Wall(bsw, bnw)]
 
     world = World(
+        SIZE,
         particle,
         ghosts,
         boundary + [Wall(*randline()) for _ in range(10)],
@@ -110,7 +112,8 @@ def game_loop(surface):
         evt = _input(pygame.event.get())
 
         ghosts = [
-            Particle(ghost.pos + perlin(*ghost.pos.tup)) for ghost in world.ghosts
+            Particle((ghost.pos + perlin(*ghost.pos.tup)).normalize(world))
+            for ghost in world.ghosts
         ]
         speed = 0
         direction = (1, 0)
@@ -130,7 +133,7 @@ def game_loop(surface):
         except IndexError:
             pass
 
-        world = World(particle, ghosts, walls, world.explosions)
+        world = World(world.size, particle, ghosts, walls, world.explosions)
 
         to_del = []
         for ghost in world.ghosts:
