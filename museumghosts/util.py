@@ -36,6 +36,9 @@ class Position:
     def __sub__(self, other: "Position") -> "Position":
         return Position(self.x - other.x, self.y - other.y)
 
+    def __truediv__(self, scalar: int) -> "Position":
+        return Position(self.x / scalar, self.y / scalar)
+
     def __iter__(self):
         yield self.x
         yield self.y

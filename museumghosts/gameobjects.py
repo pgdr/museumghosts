@@ -5,8 +5,9 @@ from .util import Position
 from .util import intersects
 import pygame
 
+ghost_size = Position(24, 24)
 ghost_png = pygame.image.load("ghost.png")
-ghost_png = pygame.transform.scale(ghost_png, (24, 24))
+ghost_png = pygame.transform.scale(ghost_png, ghost_size.tup)
 
 TAU = 2 * math.pi
 
@@ -71,7 +72,7 @@ class Particle:
 
     def _draw_ghosts(self, surface, world, fov, rot):
         """Draw all ghosts within view."""
-        pos = world.particle
+        pos = world.player
         walls = world.walls
         for ghost in world.ghosts:
             line = Wall(pos.pos, ghost.pos)
@@ -80,7 +81,7 @@ class Particle:
                     break
             else:
                 # TODO check that line falls within fov
-                surface.blit(ghost_png, ghost.pos.tup)
+                surface.blit(ghost_png, (ghost.pos - ghost_size / 2).tup)
 
 
 @dataclass(frozen=True)

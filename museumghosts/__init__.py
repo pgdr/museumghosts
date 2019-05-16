@@ -11,7 +11,7 @@ from .util import Position
 from .util import intersects
 
 
-World = namedtuple("World", "size particle ghosts walls explosions")
+World = namedtuple("World", "size player ghosts walls explosions")
 
 
 WIDTH = 1000
@@ -40,7 +40,7 @@ def _input(events):
 
 
 def draw_world(surface, world, speed, direction):
-    particle = world.particle
+    player = world.player
     ghosts = world.ghosts
     walls = world.walls
 
@@ -49,7 +49,7 @@ def draw_world(surface, world, speed, direction):
     for wall in walls:
         wall.draw(surface)
 
-    particle.draw(surface, world=world, speed=speed, direction=direction)
+    player.draw(surface, world=world, speed=speed, direction=direction)
     for explosion in world.explosions:
         explosion.draw(surface, time.time())
 
@@ -81,8 +81,8 @@ def average_speed(hist):
     return total_dist_travelled(hist) / hist.duration
 
 
-def game_loop(surface):
-    particle = Particle(Position(WIDTH // 2, HEIGHT // 2))
+def setup_game():
+    player = Particle(Position(WIDTH // 2, HEIGHT // 2))
     ghosts = [
         Particle(randpos()),
         Particle(randpos()),
@@ -99,12 +99,16 @@ def game_loop(surface):
 
     world = World(
         SIZE,
-        particle,
+        player,
         ghosts,
         boundary + [Wall(*randline()) for _ in range(10)],
         Forgetlist(1.5),  # max ttl for explosions
     )
+    return world
 
+
+def game_loop(surface):
+    world = setup_game()
     walls = world.walls
     history = Forgetlist(3.0)  # remember last half second of events
     while True:
@@ -120,7 +124,7 @@ def game_loop(surface):
         if evt is not None:
             if evt.type == pygame.MOUSEMOTION:
                 pos = Position(*evt.pos)
-                particle = Particle(Position(*pos))
+                player = Particle(Position(*pos))
                 history.append(pos)
             elif evt.type == pygame.MOUSEBUTTONDOWN:
                 radius = max(1, 20 - 5 * len(world.explosions))
@@ -133,7 +137,7 @@ def game_loop(surface):
         except IndexError:
             pass
 
-        world = World(world.size, particle, ghosts, walls, world.explosions)
+        world = World(world.size, player, ghosts, walls, world.explosions)
 
         to_del = []
         for ghost in world.ghosts:
