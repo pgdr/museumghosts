@@ -100,7 +100,7 @@ def game_loop(surface):
         particle,
         ghosts,
         boundary + [Wall(*randline()) for _ in range(10)],
-        Forgetlist(10.0),
+        Forgetlist(1.5),  # max ttl for explosions
     )
 
     walls = world.walls
@@ -119,7 +119,10 @@ def game_loop(surface):
             particle = Particle(Position(*pos))
             history.append(pos)
         if evt is not None and evt.type == pygame.MOUSEBUTTONDOWN:
-            world.explosions.append(Explosion(pos=pos, start=now, ttl=1.0, radius=20))
+            radius = max(1, 20 - 5 * len(world.explosions))
+            world.explosions.append(
+                Explosion(pos=pos, start=now, ttl=1.0, radius=radius)
+            )
         speed = average_speed(history)
         try:
             direction = (history[-1] - history[0]).tup
