@@ -12,6 +12,16 @@ from .graphics import draw_world
 World = namedtuple("World", "size player ghosts walls explosions")
 
 
+def _with(world, size=None, player=None, ghosts=None, walls=None, explosions=None):
+    return World(
+        size or world.size,
+        player or world.player,
+        ghosts or world.ghosts,
+        walls or world.walls,
+        explosions or world.explosions,
+    )
+
+
 _WIDTH = 1000
 _HEIGHT = 600
 SIZE = Position(_WIDTH, _HEIGHT)
@@ -62,6 +72,40 @@ def setup_game():
     return world
 
 
+def _update_ghosts(world, now):
+    ghosts = [
+        Ghost(
+            Particle((ghost.pos + perlin(world.size, *ghost.pos.tup)).normalize(world)),
+            is_dead=ghost.is_dead,
+        )
+        if not ghost.is_dead
+        else Ghost(ghost.particle, is_dead=ghost.is_dead)
+        for ghost in world.ghosts
+    ]
+    dead = []
+    for idx, ghost in enumerate(ghosts):
+        for explosion in world.explosions:
+            if (
+                explosion.alive(now)
+                and ghost.pos.dist(explosion.pos) <= explosion.radius
+            ):
+                dead.append(idx)
+    for idx in dead:
+        ghosts[idx] = ghosts[idx].kill()
+    return ghosts
+
+
+def _handle_mousebuttondown(world, pos, now):
+    radius = max(1, 20 - 5 * len(world.explosions))
+    world.explosions.append(Explosion(pos=pos, start=now, ttl=1.0, radius=radius))
+    return world
+
+
+def _handle_mousemotion(world, pos, now):
+    player = Particle(Position(*pos))
+    return _with(world, player=player)
+
+
 def game_loop(surface):
     world = setup_game()
     walls = world.walls
@@ -69,49 +113,26 @@ def game_loop(surface):
     while True:
         now = time.time()
         evt = _input(pygame.event.get())
-
-        ghosts = [
-            Ghost(
-                Particle(
-                    (ghost.pos + perlin(world.size, *ghost.pos.tup)).normalize(world)
-                ),
-                is_dead=ghost.is_dead,
-            )
-            if not ghost.is_dead
-            else Ghost(ghost.particle, is_dead=ghost.is_dead)
-            for ghost in world.ghosts
-        ]
         player = world.player
         speed = 0
         direction = (1, 0)
         if evt is not None:
-            if evt.type == pygame.MOUSEBUTTONDOWN:
-                radius = max(1, 20 - 5 * len(world.explosions))
-                world.explosions.append(
-                    Explosion(pos=pos, start=now, ttl=1.0, radius=radius)
-                )
-            elif evt.type == pygame.MOUSEMOTION:
+            try:
                 pos = Position(*evt.pos)
-                player = Particle(Position(*pos))
-                history.append(pos)
+            except:
+                print(f"unknown event {evt.type}")
+            if evt.type == pygame.MOUSEBUTTONDOWN:
+                world = _handle_mousebuttondown(world, pos, now)
+            elif evt.type == pygame.MOUSEMOTION:
+                world = _handle_mousemotion(world, pos, now)
+            history.append(pos)
+
+        world = _with(world, ghosts=_update_ghosts(world, now))
         speed = average_speed(history)
         try:
             direction = (history[-1] - history[0]).tup
         except IndexError:
             pass
-
-        world = World(world.size, player, ghosts, walls, world.explosions)
-
-        dead = []
-        for idx, ghost in enumerate(world.ghosts):
-            for explosion in world.explosions:
-                if (
-                    explosion.alive(now)
-                    and ghost.pos.dist(explosion.pos) <= explosion.radius
-                ):
-                    dead.append(idx)
-        for idx in dead:
-            world.ghosts[idx] = ghosts[idx].kill()
 
         if all([g.is_dead for g in world.ghosts]):
             exit("You won")
