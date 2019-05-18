@@ -22,7 +22,7 @@ def requirements():
 
 setuptools.setup(
     name="museumghosts",
-    version="0.0.1",
+    version="0.0.2",
     author="pgdr",
     packages=["museumghosts"],
     long_description=readme(),

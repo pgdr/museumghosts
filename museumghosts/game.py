@@ -118,9 +118,9 @@ def game_loop(surface):
             Ghost(
                 Particle((ghost.pos + perlin(*ghost.pos.tup)).normalize(world)),
                 is_dead=ghost.is_dead,
-            ) if not ghost.is_dead else
-            Ghost(ghost.particle,
-                is_dead=ghost.is_dead)
+            )
+            if not ghost.is_dead
+            else Ghost(ghost.particle, is_dead=ghost.is_dead)
             for ghost in world.ghosts
         ]
         player = world.player
@@ -159,15 +159,3 @@ def game_loop(surface):
             exit("You won")
 
         draw_world(surface, world, speed, direction=direction)
-
-def main():
-
-    pygame.init()
-    pygame.display.set_mode((SIZE.x, SIZE.y))
-    screen = pygame.display.get_surface()
-
-    game_loop(screen)
-
-
-if __name__ == "__main__":
-    main()
