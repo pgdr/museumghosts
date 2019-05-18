@@ -18,6 +18,23 @@ def draw_world(surface, world, speed, direction, now):
     pygame.display.flip()
 
 
+def draw_vision(surface, player, walls, fov, rot):
+    for direc in player.direcs(fov, rot):
+        best = None
+        dist = 2000
+        for wall in walls:
+            pos = intersects(wall, Line(player.pos, player.pos + direc), ray=True)
+            if not pos:
+                continue
+            dist_ = pos.dist(player.pos)
+            if dist_ < dist:
+                dist = dist_
+                best = pos
+
+        if best is not None:
+            pygame.draw.line(surface, (255, 255, 255), player.pos.tup, best.tup, 2)
+
+
 def draw_ghosts(surface, world, fov, rot):
     """Draw all ghosts within view."""
     pos = world.player

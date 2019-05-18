@@ -3,9 +3,8 @@ from dataclasses import dataclass
 
 import pygame
 
-from .graphics import draw_ghosts
+from .graphics import draw_ghosts, draw_vision
 from .util import Position, Line
-from .util import intersects
 from .util import perlin
 from .forgetlist import Forgetlist
 
@@ -97,25 +96,9 @@ class Particle:
     def draw(self, surface, world=None, speed=0, direction=(1, 0)):
         fov, rot = self._get_fov_rot(speed, direction)
         color = (255, 0, 0)
-        self._draw_vision(surface, world.walls, fov, rot)
+        draw_vision(surface, self, world.walls, fov, rot)
         draw_ghosts(surface, world, fov=fov, rot=rot)
         pygame.draw.circle(surface, color, round(self.pos), 4)
-
-    def _draw_vision(self, surface, walls, fov, rot):
-        for direc in self.direcs(fov, rot):
-            best = None
-            dist = 2000
-            for wall in walls:
-                pos = intersects(wall, Line(self.pos, self.pos + direc), ray=True)
-                if not pos:
-                    continue
-                dist_ = self.pos.dist(pos)
-                if dist_ < dist:
-                    dist = dist_
-                    best = pos
-
-            if best is not None:
-                pygame.draw.line(surface, (255, 255, 255), self.pos.tup, best.tup, 2)
 
 
 @dataclass(frozen=True)

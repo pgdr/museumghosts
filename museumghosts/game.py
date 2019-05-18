@@ -106,6 +106,6 @@ def game_loop(surface):
         try:
             direction = world.direction()
         except IndexError:
-            pass
+            direction = (1, 0)
 
         draw_world(surface, world, speed, direction=direction, now=now)
