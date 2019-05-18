@@ -4,6 +4,7 @@ from collections import namedtuple
 from dataclasses import dataclass
 from .util import Position
 from .util import intersects
+from .forgetlist import Forgetlist
 import pygame
 
 ghost_size = Position(24, 24)
@@ -16,17 +17,46 @@ ghost_dead_png = pygame.transform.scale(ghost_dead_png, ghost_size.tup)
 TAU = 2 * math.pi
 
 
-World = namedtuple("World", "size player ghosts walls explosions")
+@dataclass(frozen=True)
+class World:
+    size: Position
+    player: list
+    ghosts: list
+    walls: list
+    explosions: Forgetlist
+    history: Forgetlist
 
+    def total_dist_travelled(self):
+        hist = self.history
+        lst = [x for x in hist]
+        if len(lst) < 2:
+            return 0
+        return sum(lst[i].dist(lst[i + 1]) for i in range(len(lst) - 1))
 
-def world_with(world, size=None, player=None, ghosts=None, walls=None, explosions=None):
-    return World(
-        size or world.size,
-        player or world.player,
-        ghosts or world.ghosts,
-        walls or world.walls,
-        explosions or world.explosions,
-    )
+    def average_speed(self):
+        hist = self.history
+        return self.total_dist_travelled() / hist.duration
+
+    def direction(self):
+        return (self.history[-1] - self.history[0]).tup
+
+    def but(
+        self,
+        size=None,
+        player=None,
+        ghosts=None,
+        walls=None,
+        explosions=None,
+        history=None,
+    ):
+        return World(
+            size or self.size,
+            player or self.player,
+            ghosts or self.ghosts,
+            walls or self.walls,
+            explosions or self.explosions,
+            history or self.history,
+        )
 
 
 @dataclass(frozen=True)

@@ -22,17 +22,6 @@ def _input(events):
             return event
 
 
-def total_dist_travelled(hist):
-    lst = [x for x in hist]
-    if len(lst) < 2:
-        return 0
-    return sum(lst[i].dist(lst[i + 1]) for i in range(len(lst) - 1))
-
-
-def average_speed(hist):
-    return total_dist_travelled(hist) / hist.duration
-
-
 def setup_game():
     player = Particle(Position(SIZE.x // 2, SIZE.y // 2))
     ghosts = [
@@ -55,6 +44,7 @@ def setup_game():
         ghosts,
         boundary + [Wall(*randline(SIZE)) for _ in range(10)],
         Forgetlist(1.5),  # max ttl for explosions
+        Forgetlist(3.0),  # remember last three seconds of events
     )
     return world
 
@@ -90,13 +80,12 @@ def _handle_mousebuttondown(world, pos, now):
 
 def _handle_mousemotion(world, pos, now):
     player = Particle(Position(*pos))
-    return world_with(world, player=player)
+    return world.but(player=player)
 
 
 def game_loop(surface):
     world = setup_game()
     walls = world.walls
-    history = Forgetlist(3.0)  # remember last half second of events
     while True:
         now = time.time()
         evt = _input(pygame.event.get())
@@ -112,12 +101,12 @@ def game_loop(surface):
                 world = _handle_mousebuttondown(world, pos, now)
             elif evt.type == pygame.MOUSEMOTION:
                 world = _handle_mousemotion(world, pos, now)
-            history.append(pos)
+            world.history.append(pos)
 
-        world = world_with(world, ghosts=_update_ghosts(world, now))
-        speed = average_speed(history)
+        world = world.but(ghosts=_update_ghosts(world, now))
+        speed = world.average_speed()
         try:
-            direction = (history[-1] - history[0]).tup
+            direction = world.direction()
         except IndexError:
             pass
 
