@@ -13,12 +13,12 @@ _HEIGHT = 600
 SIZE = Position(_WIDTH, _HEIGHT)
 
 
-def _input(events):
-    for event in events:
-        if event.type in (pygame.QUIT, pygame.KEYDOWN):
+def _input():
+    evts = pygame.event.get()
+    for evt in evts:
+        if evt.type in (pygame.QUIT, pygame.KEYDOWN):
             exit(0)
-        else:
-            return event
+        yield evt
 
 
 def setup_game():
@@ -96,22 +96,13 @@ def game_loop(surface):
     }
     while True:
         _exit_if_done(world)
+        for evt in _input():  # flushing all events before drawing
+            now = time.time()
+            if evt.type in handlers:
+                pos = Position(*evt.pos)
+                world.history.append(pos)
 
-        now = time.time()
-        evt = _input(pygame.event.get())
-        speed = 0
-        direction = (1, 0)
-        if evt is None or evt.type not in handlers:
-            # do nothing but update ghosts
-            world = world.but(ghosts=_update_ghosts(world, now))
-            draw_world(surface, world, speed, direction=direction, now=now)
-            continue
-
-        pos = Position(*evt.pos)
-        world.history.append(pos)
-
-        # Update step
-        world = handlers[evt.type](world, pos, now)
+                world = handlers[evt.type](world, pos, now)
 
         world = world.but(ghosts=_update_ghosts(world, now))
         speed = world.average_speed()
