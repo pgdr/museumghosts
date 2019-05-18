@@ -1,5 +1,6 @@
 import math
 import time
+from collections import namedtuple
 from dataclasses import dataclass
 from .util import Position
 from .util import intersects
@@ -13,6 +14,19 @@ ghost_dead_png = pygame.image.load("g_dead.png")
 ghost_dead_png = pygame.transform.scale(ghost_dead_png, ghost_size.tup)
 
 TAU = 2 * math.pi
+
+
+World = namedtuple("World", "size player ghosts walls explosions")
+
+
+def world_with(world, size=None, player=None, ghosts=None, walls=None, explosions=None):
+    return World(
+        size or world.size,
+        player or world.player,
+        ghosts or world.ghosts,
+        walls or world.walls,
+        explosions or world.explosions,
+    )
 
 
 @dataclass(frozen=True)

@@ -1,5 +1,4 @@
 import math
-from collections import namedtuple
 import pygame
 
 from .gameobjects import *
@@ -8,18 +7,6 @@ from .util import Position
 from .util import intersects
 from .util import perlin, randpos, randline
 from .graphics import draw_world
-
-World = namedtuple("World", "size player ghosts walls explosions")
-
-
-def _with(world, size=None, player=None, ghosts=None, walls=None, explosions=None):
-    return World(
-        size or world.size,
-        player or world.player,
-        ghosts or world.ghosts,
-        walls or world.walls,
-        explosions or world.explosions,
-    )
 
 
 _WIDTH = 1000
@@ -103,7 +90,7 @@ def _handle_mousebuttondown(world, pos, now):
 
 def _handle_mousemotion(world, pos, now):
     player = Particle(Position(*pos))
-    return _with(world, player=player)
+    return world_with(world, player=player)
 
 
 def game_loop(surface):
@@ -127,7 +114,7 @@ def game_loop(surface):
                 world = _handle_mousemotion(world, pos, now)
             history.append(pos)
 
-        world = _with(world, ghosts=_update_ghosts(world, now))
+        world = world_with(world, ghosts=_update_ghosts(world, now))
         speed = average_speed(history)
         try:
             direction = (history[-1] - history[0]).tup
