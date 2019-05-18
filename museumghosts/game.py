@@ -82,26 +82,36 @@ def _handle_mousemotion(world, pos, now):
     return world.but(player=player)
 
 
+def _exit_if_done(world):
+    if all([g.is_dead for g in world.ghosts]):
+        exit("You won")
+
+
 def game_loop(surface):
     world = setup_game()
+
+    handlers = {
+        pygame.MOUSEBUTTONDOWN: _handle_mousebuttondown,
+        pygame.MOUSEMOTION: _handle_mousemotion,
+    }
     while True:
+        _exit_if_done(world)
+
         now = time.time()
         evt = _input(pygame.event.get())
-        player = world.player
         speed = 0
         direction = (1, 0)
-        if evt is None or evt.type not in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEMOTION):
+        if evt is None or evt.type not in handlers:
             # do nothing but update ghosts
             world = world.but(ghosts=_update_ghosts(world, now))
             draw_world(surface, world, speed, direction=direction, now=now)
             continue
 
         pos = Position(*evt.pos)
-        if evt.type == pygame.MOUSEBUTTONDOWN:
-            world = _handle_mousebuttondown(world, pos, now)
-        elif evt.type == pygame.MOUSEMOTION:
-            world = _handle_mousemotion(world, pos, now)
         world.history.append(pos)
+
+        # Update step
+        world = handlers[evt.type](world, pos, now)
 
         world = world.but(ghosts=_update_ghosts(world, now))
         speed = world.average_speed()
@@ -110,7 +120,4 @@ def game_loop(surface):
         except IndexError:
             pass
 
-        if all([g.is_dead for g in world.ghosts]):
-            exit("You won")
-
-        draw_world(surface, world, speed, direction=direction)
+        draw_world(surface, world, speed, direction=direction, now=now)
