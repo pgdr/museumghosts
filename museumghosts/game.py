@@ -3,8 +3,8 @@ import pygame
 
 from .gameobjects import World, Wall, Particle, Ghost, Explosion
 from .forgetlist import Forgetlist
-from .util import Position
-from .util import perlin, randpos, randline
+from .util import Position, Line
+from .util import randpos, randline
 from .graphics import draw_world
 
 
@@ -35,13 +35,18 @@ def setup_game():
     bsw = Position(0, SIZE.y)
     bse = Position(SIZE.x, SIZE.y)
 
-    boundary = [Wall(bnw, bne), Wall(bne, bse), Wall(bse, bsw), Wall(bsw, bnw)]
+    boundary = [
+        Wall(Line(bnw, bne)),
+        Wall(Line(bne, bse)),
+        Wall(Line(bse, bsw)),
+        Wall(Line(bsw, bnw)),
+    ]
 
     world = World(
         SIZE,
         player,
         ghosts,
-        boundary + [Wall(*randline(SIZE)) for _ in range(10)],
+        boundary + [Wall(randline(SIZE)) for _ in range(10)],
         Forgetlist(1.5),  # max ttl for explosions
         Forgetlist(3.0),  # remember last three seconds of events
     )
@@ -49,15 +54,7 @@ def setup_game():
 
 
 def _update_ghosts(world, now):
-    ghosts = [
-        Ghost(
-            Particle((ghost.pos + perlin(world.size, *ghost.pos.tup)).normalize(world)),
-            is_dead=ghost.is_dead,
-        )
-        if not ghost.is_dead
-        else Ghost(ghost.particle, is_dead=ghost.is_dead)
-        for ghost in world.ghosts
-    ]
+    ghosts = [ghost.perlin_move(world.size) for ghost in world.ghosts]
     dead = []
     for idx, ghost in enumerate(ghosts):
         for explosion in world.explosions:

@@ -3,8 +3,10 @@ from dataclasses import dataclass
 
 import pygame
 
-from .util import Position
+from .graphics import draw_ghosts
+from .util import Position, Line
 from .util import intersects
+from .util import perlin
 from .forgetlist import Forgetlist
 
 GHOST_SIZE = Position(24, 24)
@@ -61,11 +63,11 @@ class World:
 
 @dataclass(frozen=True)
 class Wall:
-    p1: Position
-    p2: Position
+    line: Line
 
     def draw(self, surface):
-        pygame.draw.line(surface, (255, 255, 255), self.p1.tup, self.p2.tup, 2)
+        p1, p2 = self.line
+        pygame.draw.line(surface, (255, 255, 255), p1.tup, p2.tup, 2)
 
 
 @dataclass(frozen=True)
@@ -95,18 +97,16 @@ class Particle:
     def draw(self, surface, world=None, speed=0, direction=(1, 0)):
         fov, rot = self._get_fov_rot(speed, direction)
         color = (255, 0, 0)
-        walls = world.walls
-        self._draw_walls(surface, walls, fov, rot)
-        self._draw_ghosts(surface, world, fov=fov, rot=rot)
+        self._draw_vision(surface, world.walls, fov, rot)
+        draw_ghosts(surface, world, fov=fov, rot=rot)
         pygame.draw.circle(surface, color, round(self.pos), 4)
 
-    def _draw_walls(self, surface, walls, fov, rot):
-
+    def _draw_vision(self, surface, walls, fov, rot):
         for direc in self.direcs(fov, rot):
             best = None
             dist = 2000
             for wall in walls:
-                pos = intersects(wall, Wall(self.pos, self.pos + direc), ray=True)
+                pos = intersects(wall, Line(self.pos, self.pos + direc), ray=True)
                 if not pos:
                     continue
                 dist_ = self.pos.dist(pos)
@@ -115,20 +115,7 @@ class Particle:
                     best = pos
 
             if best is not None:
-                pygame.draw.line(surface, (255, 255, 255), self.pos.tup, best.tup)
-
-    def _draw_ghosts(self, surface, world, fov, rot):
-        """Draw all ghosts within view."""
-        pos = world.player
-        walls = world.walls
-        for ghost in world.ghosts:
-            line = Wall(pos.pos, ghost.pos)
-            for wall in walls:
-                if intersects(line, wall, ray=False):
-                    break
-            else:
-                # TODO check that line falls within fov
-                surface.blit(ghost.sprite, (ghost.pos - GHOST_SIZE / 2).tup)
+                pygame.draw.line(surface, (255, 255, 255), self.pos.tup, best.tup, 2)
 
 
 @dataclass(frozen=True)
@@ -144,8 +131,24 @@ class Ghost:
     def sprite(self):
         return GHOST_DEAD_PNG if self.is_dead else GHOST_PNG
 
+    @property
+    def size(self):
+        return GHOST_SIZE
+
     def kill(self):
         return Ghost(self.particle, is_dead=True)
+
+    def perlin_move(self, size):
+        return (
+            Ghost(
+                Particle(
+                    (self.pos + perlin(size, *self.pos.tup)).normalize(size, padding=24)
+                ),
+                is_dead=self.is_dead,
+            )
+            if not self.is_dead
+            else Ghost(self.particle, is_dead=self.is_dead)
+        )
 
 
 @dataclass(frozen=True)

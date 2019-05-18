@@ -27,10 +27,15 @@ def randpos(size):
 
 
 def randline(size):
-    return randpos(size), randpos(size)
+    return Line(randpos(size), randpos(size))
 
 
 def intersects(line1, line2, ray=True):
+    if not isinstance(line1, Line):
+        line1 = line1.line
+    if not isinstance(line2, Line):
+        line2 = line2.line
+
     x1, y1 = line1.p1
     x2, y2 = line1.p2
     x3, y3 = line2.p1
@@ -83,9 +88,18 @@ class Position:
     def __round__(self):
         return int(self.x), int(self.y)
 
-    def normalize(self, world):
-        bound = 24
+    def normalize(self, size, padding=24):
         return Position(
-            min(max(bound, self.x), world.size.x - bound),
-            min(max(bound, self.y), world.size.y - bound),
+            min(max(padding, self.x), size.x - padding),
+            min(max(padding, self.y), size.y - padding),
         )
+
+
+@dataclass(frozen=True)
+class Line:
+    p1: Position
+    p2: Position
+
+    def __iter__(self):
+        yield self.p1
+        yield self.p2
