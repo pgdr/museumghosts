@@ -1,14 +1,13 @@
 import math
-import random
 from collections import namedtuple
 import pygame
-from noise import pnoise1
 
 from .gameobjects import *
 from .forgetlist import Forgetlist
 from .util import Position
 from .util import intersects
-
+from .util import perlin, randpos, randline
+from .graphics import draw_world
 
 World = namedtuple("World", "size player ghosts walls explosions")
 
@@ -16,18 +15,6 @@ World = namedtuple("World", "size player ghosts walls explosions")
 _WIDTH = 1000
 _HEIGHT = 600
 SIZE = Position(_WIDTH, _HEIGHT)
-_PERLINX = 10.0
-_PERLINY = 2000.0
-
-
-def perlin(x, y):
-    global SIZE, _PERLINX, _PERLINY
-    x = SIZE.x * pnoise1(_PERLINX + x) // 100
-    y = SIZE.y * pnoise1(_PERLINY + y) // 100
-    _PERLINX += 1.01
-    _PERLINY += 0.01
-    pos = Position(x, y)
-    return pos
 
 
 def _input(events):
@@ -36,37 +23,6 @@ def _input(events):
             exit(0)
         else:
             return event
-
-
-def draw_world(surface, world, speed, direction):
-    player = world.player
-    ghosts = world.ghosts
-    walls = world.walls
-
-    surface.fill((0, 0, 0))
-
-    for wall in walls:
-        wall.draw(surface)
-
-    player.draw(surface, world=world, speed=speed, direction=direction)
-    for explosion in world.explosions:
-        explosion.draw(surface, time.time())
-
-    pygame.display.flip()
-
-
-def rand(max_=None):
-    if max_ is None:
-        max_ = min(SIZE.x, SIZE.y)
-    return random.randint(0, max_)
-
-
-def randpos():
-    return Position(rand(SIZE.x), rand(SIZE.y))
-
-
-def randline():
-    return randpos(), randpos()
 
 
 def total_dist_travelled(hist):
@@ -83,10 +39,10 @@ def average_speed(hist):
 def setup_game():
     player = Particle(Position(SIZE.x // 2, SIZE.y // 2))
     ghosts = [
-        Ghost(Particle(randpos())),
-        Ghost(Particle(randpos())),
-        Ghost(Particle(randpos())),
-        Ghost(Particle(randpos())),
+        Ghost(Particle(randpos(SIZE))),
+        Ghost(Particle(randpos(SIZE))),
+        Ghost(Particle(randpos(SIZE))),
+        Ghost(Particle(randpos(SIZE))),
     ]
 
     bnw = Position(0, 0)
@@ -100,7 +56,7 @@ def setup_game():
         SIZE,
         player,
         ghosts,
-        boundary + [Wall(*randline()) for _ in range(10)],
+        boundary + [Wall(*randline(SIZE)) for _ in range(10)],
         Forgetlist(1.5),  # max ttl for explosions
     )
     return world
@@ -116,7 +72,9 @@ def game_loop(surface):
 
         ghosts = [
             Ghost(
-                Particle((ghost.pos + perlin(*ghost.pos.tup)).normalize(world)),
+                Particle(
+                    (ghost.pos + perlin(world.size, *ghost.pos.tup)).normalize(world)
+                ),
                 is_dead=ghost.is_dead,
             )
             if not ghost.is_dead
