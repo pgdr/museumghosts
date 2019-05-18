@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="Layer_1"
+   data-name="Layer 1"
+   viewBox="0 0 512 512"
+   version="1.1"
+   sodipodi:docname="ghost_svg.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+  <metadata
+     id="metadata35">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>ghost-filled</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1366"
+     inkscape:window-height="713"
+     id="namedview33"
+     showgrid="false"
+     inkscape:zoom="1.3037281"
+     inkscape:cx="243.33043"
+     inkscape:cy="390.75004"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Layer_1" />
+  <defs
+     id="defs4">
+    <style
+       id="style2">.cls-1{fill:#e4e6ea;}.cls-2{opacity:0.6;}.cls-3{fill:#fff;}.cls-4{opacity:0.12;}.cls-5{fill:#757889;}.cls-6{fill:#2b374f;}.cls-7{fill:#f2496d;}</style>
+  </defs>
+  <title
+     id="title6">ghost-filled</title>
+  <path
+     class="cls-1"
+     d="M428.8,484.1c-1.09.77-2.11,1.54-3.2,2.3-8.83,6.4-17.66,12.8-35.26,12.8s-26.43-6.4-35.2-12.8-17.6-12.8-35.2-12.8-26.43,6.4-35.2,12.8-17.6,12.8-35.2,12.8-26.43-6.4-35.2-12.8-17.6-12.8-35.2-12.8-26.43,6.4-35.2,12.8-17.6,12.8-35.2,12.8-26.37-6.4-35.14-12.8c-1.09-.77-2.11-1.54-3.2-2.3V192A179.2,179.2,0,0,1,249.6,12.8h0A179.2,179.2,0,0,1,428.8,192Z"
+     id="path8" />
+  <g
+     class="cls-2"
+     id="g12">
+    <path
+       class="cls-3"
+       d="M130.63,510.33A69.68,69.68,0,0,1,115.14,512c-21.77,0-33.37-8.46-42.68-15.26l-3-2.18L64,490.74V192C64,92.41,140.22,10.31,237.38.92,172.75,34.18,128,105.17,128,187.2V508.35Z"
+       id="path10" />
+  </g>
+  <g
+     class="cls-4"
+     id="g16">
+    <path
+       d="M384,508.35V187.2c0-82-44.75-153-109.38-186.28C371.78,10.31,448,92.41,448,192V490.74l-5.43,3.82-3,2.18c-9.31,6.8-20.91,15.26-42.68,15.26a69.68,69.68,0,0,1-15.49-1.67Z"
+       id="path14" />
+  </g>
+  <circle
+     class="cls-5"
+     cx="192"
+     cy="204.8"
+     r="32"
+     id="circle18" />
+  <circle
+     class="cls-5"
+     cx="320"
+     cy="204.8"
+     r="32"
+     id="circle20" />
+  <path
+     class="cls-6"
+     d="M256,0C150.13,0,64,86.13,64,192V490.74l8.46,6c9.31,6.8,20.91,15.26,42.68,15.26s33.43-8.46,42.74-15.26c8.22-6,14.17-10.34,27.66-10.34s19.43,4.34,27.66,10.34c9.31,6.8,20.91,15.26,42.74,15.26s33.43-8.46,42.74-15.26c8.23-6,14.17-10.34,27.66-10.34s19.43,4.34,27.66,10.34c9.31,6.8,20.91,15.26,42.74,15.26s33.41-8.45,42.65-15.15l8.61-6.11V192C448,86.13,361.87,0,256,0ZM422.4,477.54c-7.29,5.22-13.36,8.86-25.66,8.86-13.49,0-19.43-4.34-27.66-10.34-9.31-6.8-20.91-15.26-42.74-15.26s-33.43,8.46-42.74,15.26c-8.23,6-14.17,10.34-27.66,10.34s-19.43-4.34-27.66-10.34c-9.31-6.8-20.91-15.26-42.74-15.26s-33.43,8.46-42.74,15.26c-8.22,6-14.17,10.34-27.66,10.34-12.22,0-18.24-3.59-25.54-8.85V192c0-91.75,74.64-166.4,166.4-166.4S422.4,100.25,422.4,192Z"
+     id="path22" />
+  <path
+     class="cls-6"
+     d="M 236.8,204.8 A 44.8,44.8 0 1 0 192,249.6 44.85,44.85 0 0 0 236.8,204.8 Z M 192,224 A 19.2,19.2 0 1 1 211.2,204.8 19.22,19.22 0 0 1 192,224 Z"
+     id="path24"
+     inkscape:connector-curvature="0"
+     style="fill:#2b374f" />
+  <path
+     class="cls-6"
+     d="M320,160a44.8,44.8,0,1,0,44.8,44.8A44.85,44.85,0,0,0,320,160Zm0,64a19.2,19.2,0,1,1,19.2-19.2A19.22,19.22,0,0,1,320,224Z"
+     id="path26" />
+  <path
+     class="cls-6"
+     d="M256,275.2a38.4,38.4,0,0,0-38.4,38.4v25.6a38.4,38.4,0,1,0,76.8,0V313.6A38.4,38.4,0,0,0,256,275.2Z"
+     id="path28" />
+  <path
+     class="cls-7"
+     d="M256,339.2A25.49,25.49,0,0,0,233.95,352a25.39,25.39,0,0,0,44.1,0A25.49,25.49,0,0,0,256,339.2Z"
+     id="path30" />
+</svg>

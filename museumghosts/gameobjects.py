@@ -6,8 +6,11 @@ from .util import intersects
 import pygame
 
 ghost_size = Position(24, 24)
-ghost_png = pygame.image.load("ghost.png")
+ghost_png = pygame.image.load("g1.png")
 ghost_png = pygame.transform.scale(ghost_png, ghost_size.tup)
+
+ghost_dead_png = pygame.image.load("g_dead.png")
+ghost_dead_png = pygame.transform.scale(ghost_dead_png, ghost_size.tup)
 
 TAU = 2 * math.pi
 
@@ -81,7 +84,25 @@ class Particle:
                     break
             else:
                 # TODO check that line falls within fov
-                surface.blit(ghost_png, (ghost.pos - ghost_size / 2).tup)
+                surface.blit(ghost.sprite, (ghost.pos - ghost_size / 2).tup)
+
+
+@dataclass(frozen=True)
+class Ghost:
+    particle: Particle
+    is_dead: bool = False
+
+    @property
+    def pos(self):
+        return self.particle.pos  # composition relay
+
+    @property
+    def sprite(self):
+        return ghost_dead_png if self.is_dead else ghost_png
+
+
+def kill_ghost(ghost):
+    return Ghost(ghost.particle, is_dead=True)
 
 
 @dataclass(frozen=True)

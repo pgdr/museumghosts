@@ -84,10 +84,10 @@ def average_speed(hist):
 def setup_game():
     player = Particle(Position(WIDTH // 2, HEIGHT // 2))
     ghosts = [
-        Particle(randpos()),
-        Particle(randpos()),
-        Particle(randpos()),
-        Particle(randpos()),
+        Ghost(Particle(randpos())),
+        Ghost(Particle(randpos())),
+        Ghost(Particle(randpos())),
+        Ghost(Particle(randpos())),
     ]
 
     bnw = Position(0, 0)
@@ -116,9 +116,13 @@ def game_loop(surface):
         evt = _input(pygame.event.get())
 
         ghosts = [
-            Particle((ghost.pos + perlin(*ghost.pos.tup)).normalize(world))
+            Ghost(
+                Particle((ghost.pos + perlin(*ghost.pos.tup)).normalize(world)),
+                is_dead=ghost.is_dead,
+            )
             for ghost in world.ghosts
         ]
+        player = world.player
         speed = 0
         direction = (1, 0)
         if evt is not None:
@@ -139,19 +143,19 @@ def game_loop(surface):
 
         world = World(world.size, player, ghosts, walls, world.explosions)
 
-        to_del = []
-        for ghost in world.ghosts:
+        dead = []
+        for idx, ghost in enumerate(world.ghosts):
             for explosion in world.explosions:
                 if (
                     explosion.alive(now)
                     and ghost.pos.dist(explosion.pos) <= explosion.radius
                 ):
                     print(f"exploded {ghost}")
-                    to_del.append(ghost)
-        for ghost in to_del:
-            world.ghosts.remove(ghost)
+                    dead.append(idx)
+        for idx in dead:
+            world.ghosts[idx] = kill_ghost(ghosts[idx])
 
-        if not world.ghosts:
+        if all([g.is_dead for g in world.ghosts]):
             exit("You won")
 
         draw_world(surface, world, speed, direction=direction)
