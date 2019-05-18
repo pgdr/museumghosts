@@ -67,7 +67,7 @@ class Wall:
 
     def draw(self, surface):
         p1, p2 = self.line
-        pygame.draw.line(surface, (255, 255, 255), p1.tup, p2.tup, 2)
+        pygame.draw.line(surface, (100, 200, 50), p1.tup, p2.tup, 7)
 
 
 @dataclass(frozen=True)
