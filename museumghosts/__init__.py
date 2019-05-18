@@ -120,21 +120,23 @@ def game_loop(surface):
                 Particle((ghost.pos + perlin(*ghost.pos.tup)).normalize(world)),
                 is_dead=ghost.is_dead,
             )
+            if not ghost.is_dead
+            else Ghost(ghost.particle, is_dead=ghost.is_dead)
             for ghost in world.ghosts
         ]
         player = world.player
         speed = 0
         direction = (1, 0)
         if evt is not None:
-            if evt.type == pygame.MOUSEMOTION:
-                pos = Position(*evt.pos)
-                player = Particle(Position(*pos))
-                history.append(pos)
-            elif evt.type == pygame.MOUSEBUTTONDOWN:
+            if evt.type == pygame.MOUSEBUTTONDOWN:
                 radius = max(1, 20 - 5 * len(world.explosions))
                 world.explosions.append(
                     Explosion(pos=pos, start=now, ttl=1.0, radius=radius)
                 )
+            elif evt.type == pygame.MOUSEMOTION:
+                pos = Position(*evt.pos)
+                player = Particle(Position(*pos))
+                history.append(pos)
         speed = average_speed(history)
         try:
             direction = (history[-1] - history[0]).tup
@@ -150,10 +152,9 @@ def game_loop(surface):
                     explosion.alive(now)
                     and ghost.pos.dist(explosion.pos) <= explosion.radius
                 ):
-                    print(f"exploded {ghost}")
                     dead.append(idx)
         for idx in dead:
-            world.ghosts[idx] = kill_ghost(ghosts[idx])
+            world.ghosts[idx] = ghosts[idx].kill()
 
         if all([g.is_dead for g in world.ghosts]):
             exit("You won")

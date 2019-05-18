@@ -100,9 +100,8 @@ class Ghost:
     def sprite(self):
         return ghost_dead_png if self.is_dead else ghost_png
 
-
-def kill_ghost(ghost):
-    return Ghost(ghost.particle, is_dead=True)
+    def kill(self):
+        return Ghost(self.particle, is_dead=True)
 
 
 @dataclass(frozen=True)
