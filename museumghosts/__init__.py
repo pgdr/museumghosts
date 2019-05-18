@@ -1,5 +1,4 @@
 import math
-import sys
 import random
 from collections import namedtuple
 import pygame
@@ -14,17 +13,17 @@ from .util import intersects
 World = namedtuple("World", "size player ghosts walls explosions")
 
 
-WIDTH = 1000
-HEIGHT = 600
-SIZE = Position(WIDTH, HEIGHT)
+_WIDTH = 1000
+_HEIGHT = 600
+SIZE = Position(_WIDTH, _HEIGHT)
 _PERLINX = 10.0
 _PERLINY = 2000.0
 
 
 def perlin(x, y):
-    global WIDTH, HEIGTH, _PERLINX, _PERLINY
-    x = WIDTH * pnoise1(_PERLINX + x) // 100
-    y = HEIGHT * pnoise1(_PERLINY + y) // 100
+    global SIZE, _PERLINX, _PERLINY
+    x = SIZE.x * pnoise1(_PERLINX + x) // 100
+    y = SIZE.y * pnoise1(_PERLINY + y) // 100
     _PERLINX += 1.01
     _PERLINY += 0.01
     pos = Position(x, y)
@@ -34,7 +33,7 @@ def perlin(x, y):
 def _input(events):
     for event in events:
         if event.type in (pygame.QUIT, pygame.KEYDOWN):
-            sys.exit(0)
+            exit(0)
         else:
             return event
 
@@ -58,12 +57,12 @@ def draw_world(surface, world, speed, direction):
 
 def rand(max_=None):
     if max_ is None:
-        max_ = min(WIDTH, HEIGHT)
+        max_ = min(SIZE.x, SIZE.y)
     return random.randint(0, max_)
 
 
 def randpos():
-    return Position(rand(WIDTH), rand(HEIGHT))
+    return Position(rand(SIZE.x), rand(SIZE.y))
 
 
 def randline():
@@ -82,7 +81,7 @@ def average_speed(hist):
 
 
 def setup_game():
-    player = Particle(Position(WIDTH // 2, HEIGHT // 2))
+    player = Particle(Position(SIZE.x // 2, SIZE.y // 2))
     ghosts = [
         Ghost(Particle(randpos())),
         Ghost(Particle(randpos())),
@@ -91,9 +90,9 @@ def setup_game():
     ]
 
     bnw = Position(0, 0)
-    bne = Position(WIDTH, 0)
-    bsw = Position(0, HEIGHT)
-    bse = Position(WIDTH, HEIGHT)
+    bne = Position(SIZE.x, 0)
+    bsw = Position(0, SIZE.y)
+    bse = Position(SIZE.x, SIZE.y)
 
     boundary = [Wall(bnw, bne), Wall(bne, bse), Wall(bse, bsw), Wall(bsw, bnw)]
 
@@ -119,9 +118,9 @@ def game_loop(surface):
             Ghost(
                 Particle((ghost.pos + perlin(*ghost.pos.tup)).normalize(world)),
                 is_dead=ghost.is_dead,
-            )
-            if not ghost.is_dead
-            else Ghost(ghost.particle, is_dead=ghost.is_dead)
+            ) if not ghost.is_dead else
+            Ghost(ghost.particle,
+                is_dead=ghost.is_dead)
             for ghost in world.ghosts
         ]
         player = world.player
@@ -161,12 +160,10 @@ def game_loop(surface):
 
         draw_world(surface, world, speed, direction=direction)
 
-
 def main():
-    width, height = WIDTH, HEIGHT
 
     pygame.init()
-    pygame.display.set_mode((width, height))
+    pygame.display.set_mode((SIZE.x, SIZE.y))
     screen = pygame.display.get_surface()
 
     game_loop(screen)
