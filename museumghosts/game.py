@@ -1,10 +1,9 @@
-import math
+import time
 import pygame
 
-from .gameobjects import *
+from .gameobjects import World, Wall, Particle, Ghost, Explosion
 from .forgetlist import Forgetlist
 from .util import Position
-from .util import intersects
 from .util import perlin, randpos, randline
 from .graphics import draw_world
 
@@ -85,23 +84,24 @@ def _handle_mousemotion(world, pos, now):
 
 def game_loop(surface):
     world = setup_game()
-    walls = world.walls
     while True:
         now = time.time()
         evt = _input(pygame.event.get())
         player = world.player
         speed = 0
         direction = (1, 0)
-        if evt is not None:
-            try:
-                pos = Position(*evt.pos)
-            except:
-                print(f"unknown event {evt.type}")
-            if evt.type == pygame.MOUSEBUTTONDOWN:
-                world = _handle_mousebuttondown(world, pos, now)
-            elif evt.type == pygame.MOUSEMOTION:
-                world = _handle_mousemotion(world, pos, now)
-            world.history.append(pos)
+        if evt is None or evt.type not in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEMOTION):
+            # do nothing but update ghosts
+            world = world.but(ghosts=_update_ghosts(world, now))
+            draw_world(surface, world, speed, direction=direction, now=now)
+            continue
+
+        pos = Position(*evt.pos)
+        if evt.type == pygame.MOUSEBUTTONDOWN:
+            world = _handle_mousebuttondown(world, pos, now)
+        elif evt.type == pygame.MOUSEMOTION:
+            world = _handle_mousemotion(world, pos, now)
+        world.history.append(pos)
 
         world = world.but(ghosts=_update_ghosts(world, now))
         speed = world.average_speed()

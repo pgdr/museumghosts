@@ -1,10 +1,8 @@
 import pygame
-import time
 
 
-def draw_world(surface, world, speed, direction):
+def draw_world(surface, world, speed, direction, now):
     player = world.player
-    ghosts = world.ghosts
     walls = world.walls
 
     surface.fill((0, 0, 0))
@@ -14,6 +12,6 @@ def draw_world(surface, world, speed, direction):
 
     player.draw(surface, world=world, speed=speed, direction=direction)
     for explosion in world.explosions:
-        explosion.draw(surface, time.time())
+        explosion.draw(surface, now)
 
     pygame.display.flip()

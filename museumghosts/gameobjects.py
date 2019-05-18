@@ -1,18 +1,18 @@
 import math
-import time
-from collections import namedtuple
 from dataclasses import dataclass
+
+import pygame
+
 from .util import Position
 from .util import intersects
 from .forgetlist import Forgetlist
-import pygame
 
-ghost_size = Position(24, 24)
-ghost_png = pygame.image.load("g1.png")
-ghost_png = pygame.transform.scale(ghost_png, ghost_size.tup)
+GHOST_SIZE = Position(24, 24)
+GHOST_PNG = pygame.image.load("g1.png")
+GHOST_PNG = pygame.transform.scale(GHOST_PNG, GHOST_SIZE.tup)
 
-ghost_dead_png = pygame.image.load("g_dead.png")
-ghost_dead_png = pygame.transform.scale(ghost_dead_png, ghost_size.tup)
+GHOST_DEAD_PNG = pygame.image.load("g_dead.png")
+GHOST_DEAD_PNG = pygame.transform.scale(GHOST_DEAD_PNG, GHOST_SIZE.tup)
 
 TAU = 2 * math.pi
 
@@ -128,7 +128,7 @@ class Particle:
                     break
             else:
                 # TODO check that line falls within fov
-                surface.blit(ghost.sprite, (ghost.pos - ghost_size / 2).tup)
+                surface.blit(ghost.sprite, (ghost.pos - GHOST_SIZE / 2).tup)
 
 
 @dataclass(frozen=True)
@@ -142,7 +142,7 @@ class Ghost:
 
     @property
     def sprite(self):
-        return ghost_dead_png if self.is_dead else ghost_png
+        return GHOST_DEAD_PNG if self.is_dead else GHOST_PNG
 
     def kill(self):
         return Ghost(self.particle, is_dead=True)
