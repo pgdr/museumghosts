@@ -122,16 +122,11 @@ class Ghost:
         return Ghost(self.particle, is_dead=True)
 
     def perlin_move(self, size):
-        return (
-            Ghost(
-                Particle(
-                    (self.pos + perlin(size, *self.pos.tup)).normalize(size, padding=24)
-                ),
-                is_dead=self.is_dead,
-            )
-            if not self.is_dead
-            else Ghost(self.particle, is_dead=self.is_dead)
-        )
+        partic = self.particle
+        if not self.is_dead:
+            npos = self.pos + perlin(size, *self.pos.tup)
+            partic = Particle(npos.normalize(size, padding=24))
+        return Ghost(partic, is_dead=self.is_dead)
 
 
 @dataclass(frozen=True)
