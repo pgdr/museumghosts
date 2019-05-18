@@ -84,6 +84,8 @@ class Position:
         return int(self.x), int(self.y)
 
     def normalize(self, world):
+        bound = 24
         return Position(
-            min(max(0, self.x), world.size.x), min(max(0, self.y), world.size.y)
+            min(max(bound, self.x), world.size.x - bound),
+            min(max(bound, self.y), world.size.y - bound),
         )
