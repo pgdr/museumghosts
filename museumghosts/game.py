@@ -3,7 +3,7 @@ import pygame
 
 from .gameobjects import World, Wall, Particle, Ghost, Explosion
 from .forgetlist import Forgetlist
-from .util import Position, Line
+from .geometry import Position, Line
 from .util import randpos, randline
 from .graphics import draw_world
 

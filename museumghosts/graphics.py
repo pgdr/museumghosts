@@ -1,5 +1,5 @@
 import pygame
-from .util import Line, intersects
+from .geometry import Line, intersects
 
 
 def draw_world(surface, world, speed, direction, now):

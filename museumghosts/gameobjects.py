@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import pygame
 
 from .graphics import draw_ghosts, draw_vision
-from .util import Position, Line
+from .geometry import Position, Line
 from .util import perlin
 from .forgetlist import Forgetlist
 
