@@ -87,3 +87,23 @@ def test_line_segments():
     botline2 = Line(Position(4.75, 3), Position(8, 3))
 
     assert set([topline1, topline2, botline1, botline2]) == set(linesegments)
+
+
+def test_line_segments_visible():
+    topline = Line(Position(5, 1), Position(12, 1))
+    botline = Line(Position(1, 3), Position(8, 3))
+    pov = Particle(Position(4, 9))
+    w = _world().but(walls=[Wall(topline), Wall(botline)], player=pov)
+    linesegments = list(line_segments(w, visible=True))
+
+    for l in linesegments:
+        assert isinstance(l, Line)
+        for p in l:
+            assert isinstance(p, Position)
+
+    topline2 = Line(Position(9.3333333333333333, 1), Position(12, 1))
+
+    botline1 = Line(Position(1, 3), Position(4.75, 3))
+    botline2 = Line(Position(4.75, 3), Position(8, 3))
+
+    assert set([topline2, botline1, botline2]) == set(linesegments)

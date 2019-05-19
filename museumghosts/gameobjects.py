@@ -60,7 +60,7 @@ class World:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=True)
 class Wall:
     line: Line
 
