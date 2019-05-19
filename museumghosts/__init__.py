@@ -3,7 +3,7 @@ from .game import SIZE, game_loop
 
 from .gameobjects import World, Wall, Particle, Ghost, Explosion
 from .forgetlist import Forgetlist
-from .geometry import Position, Line, line_point_collection
+from .geometry import Position, Line, line_point_collection, line_segments
 
 
 def main():

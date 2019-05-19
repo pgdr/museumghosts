@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import math
 
 
-@dataclass(frozen=True, eq=True)
+@dataclass(frozen=True, eq=True, order=True)
 class Position:
     x: int
     y: int
@@ -78,7 +78,9 @@ def intersects(line1, line2, ray=True):
 
 
 def line_point_collection(world):
-    """Returns all points that intersects the ray formed from the player to an edge"""
+    """Return all points that intersects the ray formed from
+       the player to an edge.
+    """
     pov = world.player.pos
     lines = [wall.line for wall in world.walls]
     point_collection = {line: set([line.p1, line.p2]) for line in lines}
@@ -92,3 +94,16 @@ def line_point_collection(world):
                 if ipoint:
                     point_collection[wall].add(ipoint)
     return point_collection
+
+
+def line_segments(world, visible=True):
+    """Return all the line segments that are formed by the intersection points
+       from the visible ray.
+    """
+    point_collection = line_point_collection(world)
+    lines = []
+    for line, isects in point_collection.items():
+        lines.append(sorted(isects))
+    for line in lines:
+        for idx in range(len(line) - 1):
+            yield Line(line[idx], line[idx + 1])
