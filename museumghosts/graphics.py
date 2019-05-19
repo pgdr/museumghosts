@@ -1,7 +1,7 @@
 import pygame
 from .geometry import Line, intersects
 
-from .geometry import line_point_collection, line_segments
+from .geometry import line_segments
 
 
 def draw_world(surface, world, speed, now):
@@ -43,5 +43,4 @@ def draw_ghosts(surface, world):
             if intersects(line, wall, ray=False):
                 break
         else:
-            # TODO check that line falls within fov
             surface.blit(ghost.sprite, (ghost.pos - ghost.size / 2).tup)

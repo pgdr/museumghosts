@@ -53,8 +53,10 @@ def setup_game():
     return world
 
 
-def _update_ghosts(world, now):
-    ghosts = [ghost.perlin_move(world.size) for ghost in world.ghosts]
+def _update_ghosts(world, now, timestep=1):
+    ghosts = []
+    for ghost in world.ghosts:
+        ghosts += ghost.tick(world.size, now, timestep)
     dead = []
     for idx, ghost in enumerate(ghosts):
         for explosion in world.explosions:
@@ -80,12 +82,17 @@ def _handle_mousemotion(world, pos, now):
 
 
 def _exit_if_done(world):
-    if all([g.is_dead for g in world.ghosts]):
+    numdead = sum([g.is_dead for g in world.ghosts])
+    num = len(world.ghosts)
+    if numdead == num:
         exit("You won")
+    if num - numdead > 100:
+        exit("You died")
 
 
 def game_loop(surface):
     world = setup_game()
+    prev = time.time()
 
     handlers = {
         pygame.MOUSEBUTTONDOWN: _handle_mousebuttondown,
@@ -93,15 +100,17 @@ def game_loop(surface):
     }
     while True:
         _exit_if_done(world)
+        now = time.time()
         for evt in _input():  # flushing all events before drawing
-            now = time.time()
             if evt.type in handlers:
                 pos = Position(*evt.pos)
                 world.history.append(pos)
 
                 world = handlers[evt.type](world, pos, now)
 
-        world = world.but(ghosts=_update_ghosts(world, now))
+        world = world.but(ghosts=_update_ghosts(world, now, now - prev))
         speed = world.average_speed()
 
         draw_world(surface, world, speed, now=now)
+        prev = now
+        time.sleep(0.01)

@@ -16,9 +16,18 @@ class Position:
     def __truediv__(self, scalar: int) -> "Position":
         return Position(self.x / scalar, self.y / scalar)
 
+    def __mul__(self, scalar: int) -> "Position":
+        return Position(self.x * scalar, self.y * scalar)
+
     def __iter__(self):
         yield self.x
         yield self.y
+
+    def flip_hor(self):
+        return Position(-self.x, self.y)
+
+    def flip_vert(self):
+        return Position(self.x, -self.y)
 
     def dist(self, other: "Position") -> float:
         xs = (self.x - other.x) ** 2

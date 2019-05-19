@@ -1,11 +1,12 @@
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import time
+import random
 
 import pygame
 
 from .graphics import draw_ghosts, draw_vision
 from .geometry import Position, Line
-from .util import perlin
 from .forgetlist import Forgetlist
 
 GHOST_SIZE = Position(24, 24)
@@ -77,9 +78,15 @@ class Particle:
         pygame.draw.circle(surface, color, round(self.pos), 4)
 
 
+def _random_direction():
+    return Position(2 - 4 * random.random(), 2 - 4 * random.random())
+
+
 @dataclass(frozen=True)
 class Ghost:
     particle: Particle
+    time: float = field(default_factory=time.time)
+    direction: Position = field(default_factory=_random_direction)
     is_dead: bool = False
 
     @property
@@ -97,12 +104,52 @@ class Ghost:
     def kill(self):
         return Ghost(self.particle, is_dead=True)
 
-    def perlin_move(self, size):
+    def tick(self, size, now, timestep):
+        width, height = size.x, size.y
+        dist = self.direction * timestep * 100
         partic = self.particle
-        if not self.is_dead:
-            npos = self.pos + perlin(size, *self.pos.tup)
-            partic = Particle(npos.normalize(size, padding=24))
-        return Ghost(partic, is_dead=self.is_dead)
+        if self.is_dead:
+            return [
+                Ghost(
+                    partic,
+                    time=self.time,
+                    direction=self.direction,
+                    is_dead=self.is_dead,
+                )
+            ]
+
+        npos = self.pos + dist
+        direction = self.direction
+        if npos.x < 24:
+            npos = Position(25, npos.y)
+            direction = self.direction.flip_hor()
+        if npos.x > width - 24:
+            npos = Position(width - 25, npos.y)
+            direction = self.direction.flip_hor()
+        if npos.y < 24:
+            npos = Position(npos.x, 25)
+            direction = self.direction.flip_vert()
+        if npos.y > height - 24:
+            npos = Position(npos.x, height - 25)
+            direction = self.direction.flip_vert()
+
+        partic = Particle(npos)
+        if now - self.time > 8:
+            # spawn new ghosts
+            return [
+                Ghost(partic, direction=direction),
+                Ghost(
+                    Particle(partic.pos + Position(24, 24)),
+                    direction=self.direction.flip_hor(),
+                ),
+                Ghost(
+                    Particle(partic.pos - Position(24, 24)),
+                    direction=self.direction.flip_vert(),
+                ),
+            ]
+        return [
+            Ghost(partic, direction=direction, time=self.time, is_dead=self.is_dead)
+        ]
 
 
 @dataclass(frozen=True)
