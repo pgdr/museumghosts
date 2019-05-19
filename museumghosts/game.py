@@ -103,9 +103,5 @@ def game_loop(surface):
 
         world = world.but(ghosts=_update_ghosts(world, now))
         speed = world.average_speed()
-        try:
-            direction = world.direction()
-        except IndexError:
-            direction = (1, 0)
 
-        draw_world(surface, world, speed, direction=direction, now=now)
+        draw_world(surface, world, speed, now=now)

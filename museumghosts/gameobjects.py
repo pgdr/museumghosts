@@ -38,9 +38,6 @@ class World:
         hist = self.history
         return self.total_dist_travelled() / hist.duration
 
-    def direction(self):
-        return (self.history[-1] - self.history[0]).tup
-
     def but(
         self,
         size=None,
@@ -73,31 +70,10 @@ class Wall:
 class Particle:
     pos: Position
 
-    def direcs(self, fov=TAU, rot=0.0):
-        """Given field of view fov and rotation in radians yields actual fov.
-
-        """
-        assert 0 <= fov <= TAU, f"fov was not in [0,2pi]: {fov}"
-        assert 0 <= rot <= TAU, f"rot was not in [0,2pi]: {rot}"
-        rad = rot + math.pi  # rotate half way agains direction
-        while fov >= 0:
-            x = math.cos(rad)
-            y = math.sin(rad)
-            rad += 0.01
-            rad %= TAU
-            fov -= 0.01
-            yield Position(x, y)
-
-    def _get_fov_rot(self, speed, direction):
-        fov = max(0.1, TAU - (speed / 100.0))
-        rot = (TAU + math.atan2(direction[1], direction[0])) % TAU
-        return fov, rot
-
-    def draw(self, surface, world=None, speed=0, direction=(1, 0)):
-        fov, rot = self._get_fov_rot(speed, direction)
+    def draw(self, surface, world, speed=0):
         color = (255, 0, 0)
-        draw_vision(surface, self, world.walls, fov, rot)
-        draw_ghosts(surface, world, fov=fov, rot=rot)
+        draw_vision(surface, world)
+        draw_ghosts(surface, world)
         pygame.draw.circle(surface, color, round(self.pos), 4)
 
 

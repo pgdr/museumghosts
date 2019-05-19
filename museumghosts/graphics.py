@@ -1,10 +1,10 @@
 import pygame
 from .geometry import Line, intersects
 
-from .geometry import line_point_collection
+from .geometry import line_point_collection, line_segments
 
 
-def draw_world(surface, world, speed, direction, now):
+def draw_world(surface, world, speed, now):
     player = world.player
     walls = world.walls
 
@@ -13,31 +13,22 @@ def draw_world(surface, world, speed, direction, now):
     for wall in walls:
         wall.draw(surface)
 
-    player.draw(surface, world=world, speed=speed, direction=direction)
+    player.draw(surface, world=world, speed=speed)
     for explosion in world.explosions:
         explosion.draw(surface, now)
 
     pygame.display.flip()
 
 
-def draw_vision(surface, player, walls, fov, rot):
-    for direc in player.direcs(fov, rot):
-        best = None
-        dist = 2000
-        for wall in walls:
-            pos = intersects(wall, Line(player.pos, player.pos + direc), ray=True)
-            if not pos:
-                continue
-            dist_ = pos.dist(player.pos)
-            if dist_ < dist:
-                dist = dist_
-                best = pos
-
-        if best is not None:
-            pygame.draw.line(surface, (255, 255, 255), player.pos.tup, best.tup, 2)
+def draw_vision(surface, world):
+    player = world.player
+    walls = world.walls
+    for segment in line_segments(world):
+        triangle = player.pos.tup, segment.p1.tup, segment.p2.tup, player.pos.tup
+        pygame.draw.polygon(surface, (255, 255, 255), triangle)
 
 
-def draw_ghosts(surface, world, fov, rot):
+def draw_ghosts(surface, world):
     """Draw all ghosts within view."""
     pos = world.player
     walls = world.walls
