@@ -85,9 +85,11 @@ def _exit_if_done(world):
     numdead = sum([g.is_dead for g in world.ghosts])
     num = len(world.ghosts)
     if numdead == num:
-        exit("You won")
+        pygame.quit()
+        quit("You won")
     if num - numdead > 100:
-        exit("You died")
+        pygame.quit()
+        quit("You died")
 
 
 def game_loop(surface):
