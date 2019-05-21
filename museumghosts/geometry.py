@@ -86,6 +86,18 @@ def intersects(line1, line2, ray=True):
         return Position(x, y)
 
 
+def _crossing_lines(lines):
+    N = len(lines)
+    for i in range(N):
+        l1 = lines[i]
+        for j in range(i + 1, N):
+            l2 = lines[j]
+            p = intersects(l1, l2, ray=False)
+            if p:
+                yield (l1, p)
+                yield (l2, p)
+
+
 def line_point_collection(world):
     """Return all points that intersects the ray formed from
        the player to an edge.
@@ -93,6 +105,10 @@ def line_point_collection(world):
     pov = world.player.pos
     lines = [wall.line for wall in world.walls]
     point_collection = {line: set([line.p1, line.p2]) for line in lines}
+
+    for l, p in _crossing_lines(lines):
+        point_collection[l].add(p)
+
     for line in lines:
         for edge in line:
             ray = Line(pov, edge)

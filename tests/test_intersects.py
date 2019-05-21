@@ -10,6 +10,10 @@ from museumghosts import (
 )
 
 
+def linepts(x1, y1, x2, y2):
+    return Line(Position(x1, y1), Position(x2, y2))
+
+
 def _world():
     SIZE = Position(640, 480)
     player = Particle(Position(SIZE.x // 2, SIZE.y // 2))
@@ -107,3 +111,18 @@ def test_line_segments_visible():
     botline2 = Line(Position(4.75, 3), Position(8, 3))
 
     assert set([topline2, botline1, botline2]) == set(linesegments)
+
+
+def test_lines_intersecting():
+    l1 = linepts(1, 1, 2, 3)
+    l2 = linepts(1, 3, 2, 1)
+    pov = Position(3, 2)
+    w = _world().but(walls=[Wall(l1), Wall(l2)], player=Particle(pov))
+
+    col = line_point_collection(w)
+    assert len(col) == 2
+    assert Position(x=1.8, y=2.6) in col[l1]
+    assert Position(x=1.8, y=1.4) in col[l2]
+    assert Position(1.5, 2) in col[l2]
+    assert len(col[l1]) == 4
+    assert len(col[l2]) == 4
