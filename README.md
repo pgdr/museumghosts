@@ -3,3 +3,5 @@
 a game of life and death
 
 look: 👻
+
+![screenshot](https://raw.githubusercontent.com/pgdr/museumghosts/master/ghost-screenshot.png)
