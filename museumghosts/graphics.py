@@ -41,8 +41,11 @@ def draw_vision(surface, world):
     player = world.player
     walls = world.walls
     for segment in line_segments(world):
-        triangle = player.pos.tup, segment.p1.tup, segment.p2.tup, player.pos.tup
+        triangle = player.pos.tup, segment.p1.tup, segment.p2.tup
         pygame.draw.polygon(surface, (255, 255, 255), triangle)
+        # the following lines (literally) are to pad between juxtaposed polygons
+        pygame.draw.line(surface, (255, 255, 255), player.pos.tup, segment.p1.tup, 2)
+        pygame.draw.line(surface, (255, 255, 255), player.pos.tup, segment.p2.tup, 2)
 
 
 def draw_ghosts(surface, world):
