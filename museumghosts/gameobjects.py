@@ -16,6 +16,12 @@ GHOST_PNG = pygame.transform.scale(GHOST_PNG, GHOST_SIZE.tup)
 GHOST_DEAD_PNG = pygame.image.load("g_dead.png")
 GHOST_DEAD_PNG = pygame.transform.scale(GHOST_DEAD_PNG, GHOST_SIZE.tup)
 
+
+GUARD_SIZE = Position(24, 24)
+GUARD_PNG = pygame.image.load("guard.png")
+GUARD_PNG = pygame.transform.scale(GUARD_PNG, GUARD_SIZE.tup)
+
+
 TAU = 2 * math.pi
 
 
@@ -75,7 +81,7 @@ class Particle:
         color = (255, 0, 0)
         draw_vision(surface, world)
         draw_ghosts(surface, world)
-        pygame.draw.circle(surface, color, round(self.pos), 4)
+        surface.blit(GUARD_PNG, (self.pos - GUARD_SIZE / 2).tup)
 
 
 def _random_direction():
