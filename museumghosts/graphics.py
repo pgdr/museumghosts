@@ -19,7 +19,7 @@ def draw_world(surface, world, speed, now):
         wall.draw(surface)
 
     vision_surface = pygame.Surface(world.size.tup)
-    vision_surface.fill((100, 100, 100))
+    vision_surface.fill((20, 20, 20))
     vision_surface.set_alpha(100)
 
     player.draw(vision_surface, world=world, speed=speed)
