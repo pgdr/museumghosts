@@ -10,6 +10,7 @@ def main():
 
     pygame.init()
     pygame.display.set_mode((SIZE.x, SIZE.y))
+    pygame.display.set_caption('Museum guard')
     screen = pygame.display.get_surface()
 
     game_loop(screen)
