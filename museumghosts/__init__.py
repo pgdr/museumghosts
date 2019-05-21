@@ -12,6 +12,7 @@ def main():
     pygame.display.set_mode((SIZE.x, SIZE.y))
     pygame.display.set_caption("Museum guard")
     screen = pygame.display.get_surface()
+    pygame.mouse.set_visible(False)
 
     game_loop(screen)
 
