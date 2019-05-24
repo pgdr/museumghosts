@@ -34,6 +34,11 @@ class Position:
         ys = (self.y - other.y) ** 2
         return math.sqrt(xs + ys)
 
+    def but(self, x=None, y=None):
+        x = self.x if x is None else x
+        y = self.y if y is None else y
+        return Position(x, y)
+
     @property
     def tup(self):
         return (self.x, self.y)

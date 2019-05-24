@@ -1,7 +1,7 @@
 import time
 import pygame
 
-from .gameobjects import World, Wall, Particle, Ghost, Explosion
+from .gameobjects import World, Wall, Particle, Player, Ghost, Explosion
 from .forgetlist import Forgetlist
 from .geometry import Position, Line
 from .util import randpos, randline
@@ -13,16 +13,21 @@ _HEIGHT = 600
 SIZE = Position(_WIDTH, _HEIGHT)
 
 
+def _quit():
+    pygame.quit()
+    exit(0)
+
+
 def _input():
     evts = pygame.event.get()
     for evt in evts:
-        if evt.type in (pygame.QUIT, pygame.KEYDOWN):
-            exit(0)
+        if evt.type == pygame.QUIT:
+            _quit()
         yield evt
 
 
 def setup_game():
-    player = Particle(Position(SIZE.x // 2, SIZE.y // 2))
+    player = Player(Position(SIZE.x // 2, SIZE.y // 2))
     ghosts = [
         Ghost(Particle(randpos(SIZE))),
         Ghost(Particle(randpos(SIZE))),
@@ -70,15 +75,39 @@ def _update_ghosts(world, now, timestep=1):
     return ghosts
 
 
-def _handle_mousebuttondown(world, pos, now):
+def _handle_mousebuttondown(world, evt, now):
+    pos = evt.pos
+    world.history.append(pos)
     radius = max(1, 20 - 5 * len(world.explosions))
     world.explosions.append(Explosion(pos=pos, start=now, ttl=1.0, radius=radius))
     return world
 
 
-def _handle_mousemotion(world, pos, now):
-    player = Particle(Position(*pos))
+def _handle_mousemotion(world, evt, now):
+    pos = evt.pos
+    world.history.append(pos)
+    player = world.player.but(pos=Position(*pos))
     return world.but(player=player)
+
+
+def _handle_movement(world, key, now):
+    if key == pygame.K_w:
+        return world.but(player=world.player.up)
+    if key == pygame.K_a:
+        return world.but(player=world.player.left)
+    if key == pygame.K_s:
+        return world.but(player=world.player.down)
+    if key == pygame.K_d:
+        return world.but(player=world.player.right)
+    return world
+
+
+def _handle_keydown(world, evt, now):
+    key = evt.key
+    if key in (pygame.K_q, pygame.K_ESCAPE):
+        _quit()
+
+    return _handle_movement(world, key, now)
 
 
 def _exit_if_done(world):
@@ -99,20 +128,23 @@ def game_loop(surface):
     handlers = {
         pygame.MOUSEBUTTONDOWN: _handle_mousebuttondown,
         pygame.MOUSEMOTION: _handle_mousemotion,
+        pygame.KEYDOWN: _handle_keydown,
     }
     while True:
+
         _exit_if_done(world)
+
         now = time.time()
         for evt in _input():  # flushing all events before drawing
             if evt.type in handlers:
-                pos = Position(*evt.pos)
-                world.history.append(pos)
-
-                world = handlers[evt.type](world, pos, now)
+                world = handlers[evt.type](world, evt, now)
+        keys = pygame.key.get_pressed()
+        for k in (pygame.K_w, pygame.K_d, pygame.K_a, pygame.K_s):
+            if keys[k]:
+                world = _handle_movement(world, k, now)
 
         world = world.but(ghosts=_update_ghosts(world, now, now - prev))
-        speed = world.average_speed()
 
-        draw_world(surface, world, speed, now=now)
+        draw_world(surface, world, speed=0, now=now)
         prev = now
         time.sleep(0.01)

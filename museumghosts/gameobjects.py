@@ -34,17 +34,6 @@ class World:
     explosions: Forgetlist
     history: Forgetlist
 
-    def total_dist_travelled(self):
-        hist = self.history
-        lst = [x for x in hist]
-        if len(lst) < 2:
-            return 0
-        return sum(lst[i].dist(lst[i + 1]) for i in range(len(lst) - 1))
-
-    def average_speed(self):
-        hist = self.history
-        return self.total_dist_travelled() / hist.duration
-
     def but(
         self,
         size=None,
@@ -77,11 +66,42 @@ class Wall:
 class Particle:
     pos: Position
 
+
+@dataclass(frozen=True)
+class Player(Particle):
+
+    direction: Position = Position(0, 0)
+
+    def but(self, pos=None, direction=None):
+        pos = self.pos if pos is None else pos
+        direction = self.direction if direction is None else direction
+        return Player(pos, direction)
+
     def draw(self, surface, world, speed=0):
         color = (255, 0, 0)
         draw_vision(surface, world)
         draw_ghosts(surface, world)
         surface.blit(GUARD_PNG, (self.pos - GUARD_SIZE / 2).tup)
+
+    @property
+    def up(self):
+        y = min(self.direction.y - 1, -1)
+        return Player(self.pos + Position(0, y), direction=self.direction.but(y=y))
+
+    @property
+    def down(self):
+        y = max(self.direction.y + 1, 1)
+        return Player(self.pos + Position(0, y), direction=self.direction.but(y=y))
+
+    @property
+    def left(self):
+        x = min(-1, self.direction.x - 1)
+        return Player(self.pos + Position(x, 0), direction=self.direction.but(x=x))
+
+    @property
+    def right(self):
+        x = max(1, self.direction.x + 1)
+        return Player(self.pos + Position(x, 0), direction=self.direction.but(x=x))
 
 
 def _random_direction():
