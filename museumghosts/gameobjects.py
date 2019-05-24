@@ -6,7 +6,7 @@ import random
 import pygame
 
 from .graphics import draw_ghosts, draw_vision
-from .geometry import Position, Line
+from .geometry import Position, Line, intersects
 from .forgetlist import Forgetlist
 
 GHOST_SIZE = Position(24, 24)
@@ -52,6 +52,27 @@ class World:
             history or self.history,
         )
 
+    @staticmethod
+    def _intersects_ghost(ray, ghost):
+        rad = 12
+        x1 = ghost.pos.x + rad
+        y1 = ghost.pos.y + rad
+        x2 = ghost.pos.x - rad
+        y2 = ghost.pos.y - rad
+        if intersects(ray, Line(Position(x1, y1), Position(x2, y2)), ray=False):
+            return True
+
+    def fire(self, now):
+        player = self.player
+        ray = Line(player.pos, player.vision)
+        for ghost in self.ghosts:
+            if self._intersects_ghost(ray, ghost):
+                return self.but(
+                    ghosts=self.ghosts.remove(ghost),
+                    explosions=self.explosions.append(Explosion(ray, now, 3)),
+                )
+        return self
+
 
 @dataclass(frozen=True, eq=True)
 class Wall:
@@ -71,11 +92,13 @@ class Particle:
 class Player(Particle):
 
     direction: Position = Position(0, 0)
+    vision: Position = Position(0, 0)
 
-    def but(self, pos=None, direction=None):
+    def but(self, pos=None, direction=None, vision=None):
         pos = self.pos if pos is None else pos
         direction = self.direction if direction is None else direction
-        return Player(pos, direction)
+        vision = self.vision if vision is None else vision
+        return Player(pos, direction, vision)
 
     def draw(self, surface, world, speed=0):
         color = (255, 0, 0)
@@ -86,26 +109,34 @@ class Player(Particle):
     @property
     def up(self):
         y = min(self.direction.y - 1, -1)
-        return Player(self.pos + Position(0, y), direction=self.direction.but(y=y))
+        return self.but(
+            pos=self.pos + Position(0, y), direction=self.direction.but(y=y)
+        )
 
     @property
     def down(self):
         y = max(self.direction.y + 1, 1)
-        return Player(self.pos + Position(0, y), direction=self.direction.but(y=y))
+        return self.but(
+            pos=self.pos + Position(0, y), direction=self.direction.but(y=y)
+        )
 
     @property
     def left(self):
         x = min(-1, self.direction.x - 1)
-        return Player(self.pos + Position(x, 0), direction=self.direction.but(x=x))
+        return self.but(
+            pos=self.pos + Position(x, 0), direction=self.direction.but(x=x)
+        )
 
     @property
     def right(self):
         x = max(1, self.direction.x + 1)
-        return Player(self.pos + Position(x, 0), direction=self.direction.but(x=x))
+        return self.but(
+            pos=self.pos + Position(x, 0), direction=self.direction.but(x=x)
+        )
 
 
 def _random_direction():
-    return Position(2 - 4 * random.random(), 2 - 4 * random.random())
+    return Position(1 - 2 * random.random(), 1 - 2 * random.random())
 
 
 @dataclass(frozen=True)
@@ -160,7 +191,7 @@ class Ghost:
             direction = self.direction.flip_vert()
 
         partic = Particle(npos)
-        if now - self.time > 8:
+        if now - self.time > 12:
             # spawn new ghosts
             return [
                 Ghost(partic, direction=direction),
@@ -180,10 +211,9 @@ class Ghost:
 
 @dataclass(frozen=True)
 class Explosion:
-    pos: Position
+    ray: Line
     start: float
     ttl: float
-    radius: float
 
     def draw(self, surface, now):
         if not self.alive(now):
@@ -192,7 +222,7 @@ class Explosion:
         red = done / self.ttl
         brightness = (2.2 ** math.log(done)) / self.ttl
         col = (red, brightness, 0)
-        pygame.draw.circle(surface, col, round(self.pos), self.radius)
+        pygame.draw.line(surface, col, round(self.ray.p1), round(self.ray.p2))
 
     def age(self, now):
         return now - self.start

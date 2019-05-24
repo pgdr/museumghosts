@@ -51,7 +51,7 @@ def setup_game():
         SIZE,
         player,
         ghosts,
-        boundary + [Wall(randline(SIZE)) for _ in range(10)],
+        boundary + [Wall(randline(SIZE)) for _ in range(3)],
         Forgetlist(1.5),  # max ttl for explosions
         Forgetlist(3.0),  # remember last three seconds of events
     )
@@ -63,30 +63,25 @@ def _update_ghosts(world, now, timestep=1):
     for ghost in world.ghosts:
         ghosts += ghost.tick(world.size, now, timestep)
     dead = []
-    for idx, ghost in enumerate(ghosts):
-        for explosion in world.explosions:
-            if (
-                explosion.alive(now)
-                and ghost.pos.dist(explosion.pos) <= explosion.radius
-            ):
-                dead.append(idx)
+    # for idx, ghost in enumerate(ghosts):
+    #     for explosion in world.explosions:
+    #         if (
+    #             explosion.alive(now)
+    #             and ghost.pos.dist(explosion.pos) <= explosion.radius
+    #         ):
+    #             dead.append(idx)
     for idx in dead:
         ghosts[idx] = ghosts[idx].kill()
     return ghosts
 
 
 def _handle_mousebuttondown(world, evt, now):
-    pos = evt.pos
-    world.history.append(pos)
-    radius = max(1, 20 - 5 * len(world.explosions))
-    world.explosions.append(Explosion(pos=pos, start=now, ttl=1.0, radius=radius))
-    return world
+    return world.fire(now)
 
 
 def _handle_mousemotion(world, evt, now):
     pos = evt.pos
-    world.history.append(pos)
-    player = world.player.but(pos=Position(*pos))
+    player = world.player.but(vision=Position(*pos))
     return world.but(player=player)
 
 
