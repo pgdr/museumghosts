@@ -16,6 +16,9 @@ class Position:
     def __truediv__(self, scalar: int) -> "Position":
         return Position(self.x / scalar, self.y / scalar)
 
+    def __floordiv__(self, scalar: int) -> "Position":
+        return Position(self.x // scalar, self.y // scalar)
+
     def __mul__(self, scalar: int) -> "Position":
         return Position(self.x * scalar, self.y * scalar)
 

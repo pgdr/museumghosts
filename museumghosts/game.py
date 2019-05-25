@@ -7,10 +7,20 @@ from .geometry import Position, Line
 from .util import randpos, randline
 from .graphics import draw_world
 
+from .mazegen import random_maze
 
 _WIDTH = 1000
 _HEIGHT = 600
 SIZE = Position(_WIDTH, _HEIGHT)
+
+
+def maze():
+    scal = 200
+    M = random_maze(*(SIZE // scal).tup)
+
+    for p1, p2 in M.edges:
+        line = Line(Position(*p1) * scal, Position(*p2) * scal)
+        yield Wall(line)
 
 
 def _quit():
@@ -51,7 +61,7 @@ def setup_game():
         SIZE,
         player,
         ghosts,
-        boundary + [Wall(randline(SIZE)) for _ in range(3)],
+        boundary + list(maze()),  # [Wall(randline(SIZE)) for _ in range(3)],
         Forgetlist(1.5),  # max ttl for explosions
         Forgetlist(3.0),  # remember last three seconds of events
     )

@@ -54,7 +54,7 @@ class World:
 
     @staticmethod
     def _intersects_ghost(ray, ghost):
-        rad = 12
+        rad = 24
         x1 = ghost.pos.x + rad
         y1 = ghost.pos.y + rad
         x2 = ghost.pos.x - rad
