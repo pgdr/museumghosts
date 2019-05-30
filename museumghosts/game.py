@@ -198,16 +198,24 @@ def game_loop(surface):
         _exit_if_done(world)
 
         now = time.time()
+        elapsed = now - prev
         for evt in _input():  # flushing all events before drawing
             if evt.type in handlers:
                 world = handlers[evt.type](world, evt, now)
         keys = pygame.key.get_pressed()
+        moved = False
         for k in (pygame.K_w, pygame.K_d, pygame.K_a, pygame.K_s):
             if keys[k]:
                 world = _handle_movement(world, k, now)
+                moved = True
+        if not moved:
+            world = world.but(player=world.player.stands_still())
 
-        world = world.but(ghosts=_update_ghosts(world, now, now - prev))
+        world = world.but(ghosts=_update_ghosts(world, now, elapsed))
 
         draw_world(surface, world, speed=0, now=now)
         prev = now
-        time.sleep(0.01)
+        #
+        tick = 0.1
+        if elapsed < tick:
+            time.sleep(tick - elapsed)
