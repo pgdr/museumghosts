@@ -119,18 +119,12 @@ def setup_game():
     return world
 
 
-def _update_ghosts(world, now, timestep=1):
+def _update_ghosts(world, now, elapsed=50):
     ghosts = []
     for ghost in world.ghosts:
-        ghosts += ghost.tick(world.size, now, timestep)
+        ghosts += ghost.tick(world.size, now, elapsed)
     dead = []
-    # for idx, ghost in enumerate(ghosts):
-    #     for explosion in world.explosions:
-    #         if (
-    #             explosion.alive(now)
-    #             and ghost.pos.dist(explosion.pos) <= explosion.radius
-    #         ):
-    #             dead.append(idx)
+
     for idx in dead:
         ghosts[idx] = ghosts[idx].kill()
     return ghosts
@@ -186,7 +180,7 @@ def collision_detection(world):
 
 def game_loop(surface):
     world = setup_game()
-    prev = time.time()
+    clock = pygame.time.Clock()
 
     handlers = {
         pygame.MOUSEBUTTONDOWN: _handle_mousebuttondown,
@@ -197,8 +191,9 @@ def game_loop(surface):
         collision_detection(world)
         _exit_if_done(world)
 
-        now = time.time()
-        elapsed = now - prev
+        now = pygame.time.get_ticks() / 1000.0  # milliseconds since init
+        elapsed = clock.get_time()
+
         for evt in _input():  # flushing all events before drawing
             if evt.type in handlers:
                 world = handlers[evt.type](world, evt, now)
@@ -216,8 +211,4 @@ def game_loop(surface):
         world = world.but(ghosts=_update_ghosts(world, now, elapsed))
 
         draw_world(surface, world, speed=0, now=now)
-        prev = now
-        #
-        tick = 0.1
-        if elapsed < tick:
-            time.sleep(tick - elapsed)
+        clock.tick(50)

@@ -145,15 +145,24 @@ class Player(Particle):
 
 
 def _random_direction():
-    return Position(1 - 2 * random.random(), 1 - 2 * random.random())
+    # speed of ghost is (-0.2, 0.2)
+    return Position(1 - 2 * random.random(), 1 - 2 * random.random()) / 5
 
 
 @dataclass(frozen=True)
 class Ghost:
     particle: Particle
-    time: float = field(default_factory=time.time)
+    time: float = 0
     direction: Position = field(default_factory=_random_direction)
     is_dead: bool = False
+
+    def but(self, particle=None, time=None, direction=None, is_dead=None):
+        return Ghost(
+            particle if particle is not None else self.particle,
+            time if time is not None else self.time,
+            direction if direction is not None else self.direction,
+            is_dead if is_dead is not None else self.is_dead,
+        )
 
     @property
     def pos(self):
@@ -168,21 +177,14 @@ class Ghost:
         return GHOST_SIZE
 
     def kill(self):
-        return Ghost(self.particle, is_dead=True)
+        return self.but(is_dead=True)
 
-    def tick(self, size, now, timestep):
+    def tick(self, size, now, elapsed):
         width, height = size.x, size.y
-        dist = self.direction * timestep * 100
+        dist = self.direction * elapsed
         partic = self.particle
         if self.is_dead:
-            return [
-                Ghost(
-                    partic,
-                    time=self.time,
-                    direction=self.direction,
-                    is_dead=self.is_dead,
-                )
-            ]
+            return [self.but(particle=partic)]
 
         npos = self.pos + dist
         direction = self.direction
@@ -203,19 +205,19 @@ class Ghost:
         if now - self.time > 12:
             # spawn new ghosts
             return [
-                Ghost(partic, direction=direction),
-                Ghost(
-                    Particle(partic.pos + Position(24, 24)),
+                self.but(particle=partic, time=now),
+                self.but(
+                    particle=Particle(partic.pos + Position(24, 24)),
                     direction=self.direction.flip_hor(),
+                    time=now,
                 ),
-                Ghost(
-                    Particle(partic.pos - Position(24, 24)),
+                self.but(
+                    particle=Particle(partic.pos - Position(24, 24)),
                     direction=self.direction.flip_vert(),
+                    time=now,
                 ),
             ]
-        return [
-            Ghost(partic, direction=direction, time=self.time, is_dead=self.is_dead)
-        ]
+        return [self.but(particle=partic, direction=direction)]
 
 
 @dataclass(frozen=True)
