@@ -177,6 +177,13 @@ def _exit_if_done(world):
         quit("You died")
 
 
+def collision_detection(world):
+    player = world.player
+    for ghost in world.ghosts:
+        if player.pos.dist(ghost.pos) <= max(ghost.size):
+            exit("collision dead")
+
+
 def game_loop(surface):
     world = setup_game()
     prev = time.time()
@@ -187,7 +194,7 @@ def game_loop(surface):
         pygame.KEYDOWN: _handle_keydown,
     }
     while True:
-
+        collision_detection(world)
         _exit_if_done(world)
 
         now = time.time()
