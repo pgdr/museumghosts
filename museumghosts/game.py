@@ -148,13 +148,13 @@ def _handle_mousemotion(world, evt, now):
 
 def _handle_movement(world, key, now):
     if key == pygame.K_w:
-        return world.but(player=world.player.up)
+        return world.but(player=world.player.up(world))
     if key == pygame.K_a:
-        return world.but(player=world.player.left)
+        return world.but(player=world.player.left(world))
     if key == pygame.K_s:
-        return world.but(player=world.player.down)
+        return world.but(player=world.player.down(world))
     if key == pygame.K_d:
-        return world.but(player=world.player.right)
+        return world.but(player=world.player.right(world))
     return world
 
 
@@ -209,7 +209,9 @@ def game_loop(surface):
                 world = _handle_movement(world, k, now)
                 moved = True
         if not moved:
-            world = world.but(player=world.player.stands_still())
+            world = world.but(player=world.player.freeze())
+
+        world = world.but(player=world.player)
 
         world = world.but(ghosts=_update_ghosts(world, now, elapsed))
 

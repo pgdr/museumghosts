@@ -158,3 +158,10 @@ def line_segments(world, visible=True):
                     yield segment
             else:
                 yield segment
+
+
+def crosses_wall(world, ray):
+    for wall in world.walls:
+        if intersects(wall, ray, ray=False):
+            return wall
+    return None

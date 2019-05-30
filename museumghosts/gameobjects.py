@@ -6,7 +6,7 @@ import random
 import pygame
 
 from .graphics import draw_ghosts, draw_vision
-from .geometry import Position, Line, intersects
+from .geometry import Position, Line, intersects, crosses_wall
 from .forgetlist import Forgetlist
 
 GHOST_SIZE = Position(24, 24)
@@ -106,36 +106,42 @@ class Player(Particle):
         draw_ghosts(surface, world)
         surface.blit(GUARD_PNG, (self.pos - GUARD_SIZE / 2).tup)
 
-    def stands_still(self):
+    def freeze(self):
         return self.but(direction=Position(0, 0))
 
-    @property
-    def up(self):
+    def _move(self, world, npos, direction):
+        if crosses_wall(world, Line(self.pos, npos)):
+            return self.freeze().but(pos=self.pos).inside(world)
+        return self.but(pos=npos, direction=direction).inside(world)
+
+    def up(self, world):
         y = min(self.direction.y - 2, -1)
-        return self.but(
-            pos=self.pos + Position(0, y), direction=self.direction.but(y=y)
-        )
+        npos = self.pos + Position(0, y)
+        return self._move(world, npos, self.direction.but(y=y))
 
-    @property
-    def down(self):
+    def down(self, world):
         y = max(self.direction.y + 2, 1)
-        return self.but(
-            pos=self.pos + Position(0, y), direction=self.direction.but(y=y)
-        )
+        npos = self.pos + Position(0, y)
+        return self._move(world, npos, self.direction.but(y=y))
 
-    @property
-    def left(self):
+    def left(self, world):
         x = min(-1, self.direction.x - 2)
-        return self.but(
-            pos=self.pos + Position(x, 0), direction=self.direction.but(x=x)
-        )
+        npos = self.pos + Position(x, 0)
+        return self._move(world, npos, self.direction.but(x=x))
 
-    @property
-    def right(self):
+    def right(self, world):
         x = max(1, self.direction.x + 2)
-        return self.but(
-            pos=self.pos + Position(x, 0), direction=self.direction.but(x=x)
-        )
+        npos = self.pos + Position(x, 0)
+        return self._move(world, npos, self.direction.but(x=x))
+
+    def inside(self, world):
+        pad = 5  # hardcoded wall width
+        x = min(max(pad, self.pos.x), world.size.x - pad)
+        y = min(max(pad, self.pos.y), world.size.y - pad)
+        pos = Position(x, y)
+        if pos == self.pos:
+            return self
+        return self.freeze().but(pos=Position(x, y))
 
 
 def _random_direction():
