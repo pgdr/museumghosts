@@ -225,7 +225,7 @@ class Explosion:
         red = done / self.ttl
         brightness = (2.2 ** math.log(done)) / self.ttl
         col = (red, brightness, 0)
-        pygame.draw.line(surface, col, round(self.ray.p1), round(self.ray.p2))
+        pygame.draw.line(surface, col, round(self.ray.p1), round(self.ray.p2), 3)
 
     def age(self, now):
         return now - self.start
