@@ -106,6 +106,9 @@ class Player(Particle):
         draw_ghosts(surface, world)
         surface.blit(GUARD_PNG, (self.pos - GUARD_SIZE / 2).tup)
 
+    def stands_still(self):
+        return self.but(direction=Position(0, 0))
+
     @property
     def up(self):
         y = min(self.direction.y - 2, -1)
