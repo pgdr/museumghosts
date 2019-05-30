@@ -108,28 +108,28 @@ class Player(Particle):
 
     @property
     def up(self):
-        y = min(self.direction.y - 1, -1)
+        y = min(self.direction.y - 2, -1)
         return self.but(
             pos=self.pos + Position(0, y), direction=self.direction.but(y=y)
         )
 
     @property
     def down(self):
-        y = max(self.direction.y + 1, 1)
+        y = max(self.direction.y + 2, 1)
         return self.but(
             pos=self.pos + Position(0, y), direction=self.direction.but(y=y)
         )
 
     @property
     def left(self):
-        x = min(-1, self.direction.x - 1)
+        x = min(-1, self.direction.x - 2)
         return self.but(
             pos=self.pos + Position(x, 0), direction=self.direction.but(x=x)
         )
 
     @property
     def right(self):
-        x = max(1, self.direction.x + 1)
+        x = max(1, self.direction.x + 2)
         return self.but(
             pos=self.pos + Position(x, 0), direction=self.direction.but(x=x)
         )
