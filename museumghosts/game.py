@@ -14,12 +14,63 @@ _HEIGHT = 600
 SIZE = Position(_WIDTH, _HEIGHT)
 
 
+def merge(e1, e2):
+    p11, p12 = e1
+    p21, p22 = e2
+    x11, y11 = p11
+    x12, y12 = p12
+    x21, y21 = p21
+    x22, y22 = p22
+    # horizontal
+    if y11 == y12 == y21 == y22 and x11 == x21:
+        return Line(Position(x12, y11), Position(x22, y11))
+    if y11 == y12 == y21 == y22 and x11 == x22:
+        return Line(Position(x12, y11), Position(x21, y11))
+    if y11 == y12 == y21 == y22 and x12 == x21:
+        return Line(Position(x11, y11), Position(x22, y11))
+    if y11 == y12 == y21 == y22 and x12 == x22:
+        return Line(Position(x11, y11), Position(x21, y11))
+    # vertical
+    if x11 == x12 == x21 == x22 and y11 == y21:
+        return Line(Position(x11, y12), Position(x11, y22))
+    if x11 == x12 == x21 == x22 and y11 == y22:
+        return Line(Position(x11, y12), Position(x11, y21))
+    if x11 == x12 == x21 == x22 and y12 == y21:
+        return Line(Position(x11, y11), Position(x11, y22))
+    if x11 == x12 == x21 == x22 and y12 == y22:
+        return Line(Position(x11, y11), Position(x11, y21))
+
+
 def maze():
-    scal = 200
+    scal = 280
     M = random_maze(*(SIZE // scal).tup)
 
+    edges = set(M.edges)
+    edited = True
+    while edited:
+        edited = False
+        delete = set()
+        add = set()
+        for e1 in edges:
+            if edited:
+                break
+            for e2 in edges:
+                if e1 == e2:
+                    continue
+                m = merge(e1, e2)
+                if m:
+                    delete.add(e1)
+                    delete.add(e2)
+                    add.add(m)
+                    edited = True
+                    break
+        edges = (edges - delete) | add
+
     for p1, p2 in M.edges:
-        line = Line(Position(*p1) * scal, Position(*p2) * scal)
+        line = Line(
+            Position(*p1) * scal + Position(100, 100),
+            Position(*p2) * scal + Position(100, 100),
+        )
         yield Wall(line)
 
 
@@ -61,7 +112,7 @@ def setup_game():
         SIZE,
         player,
         ghosts,
-        boundary + list(maze()),  # [Wall(randline(SIZE)) for _ in range(3)],
+        boundary + list(maze()),
         Forgetlist(1.5),  # max ttl for explosions
         Forgetlist(3.0),  # remember last three seconds of events
     )
