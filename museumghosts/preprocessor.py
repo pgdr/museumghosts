@@ -1,5 +1,24 @@
 import itertools
-from .geometry import intersects
+from .gameobjects import Wall
+from .geometry import intersects, Line, Position
+
+
+def _rect_line_iterator(rect):
+    upperleft, lowerright = rect
+    x1, y1 = upperleft
+    x2, y2 = lowerright
+
+    yield from (
+        Line(Position(x1, y1), Position(x2, y1)),
+        Line(Position(x2, y1), Position(x2, y2)),
+        Line(Position(x1, y1), Position(x1, y2)),
+        Line(Position(x1, y2), Position(x2, y2)),
+    )
+
+
+def _points_in_lines(lines):
+    for line in lines:
+        yield from line
 
 
 def _vertex_iterator(world):
@@ -8,7 +27,7 @@ def _vertex_iterator(world):
 
 
 def _pair_iterator(world):
-    yield from product(_vertex_iterator(world), _vertex_iterator(world))
+    yield from itertools.product(_vertex_iterator(world), _vertex_iterator(world))
 
 
 def _preprocess_rect(world, upperleft, lowerright):
@@ -19,26 +38,10 @@ def _preprocess_rect(world, upperleft, lowerright):
     """
     x1, y1 = upperleft
     x2, y2 = lowerright
-    point_collection = set(
-        [
-            Position(x1, y1),
-            Position(x2, y1),
-            Position(x2, y1),
-            Position(x2, y2),
-            Position(x1, y1),
-            Position(x1, y2),
-            Position(x1, y2),
-            Position(x2, y2),
-        ]
-    )  # set of all points on the rectangle
-    rect = (
-        Line(Position(x1, y1), Position(x2, y1)),
-        Line(Position(x2, y1), Position(x2, y2)),
-        Line(Position(x1, y1), Position(x1, y2)),
-        Line(Position(x1, y2), Position(x2, y2)),
-    )
+    rect_lines = _rect_line_iterator((upperleft, lowerright))
+    point_collection = set(_points_in_lines(rect_lines))
     for p1, p2 in _pair_iterator(world):
-        for rect_edge in rect:
+        for rect_edge in rect_lines:
             point = intersects(Line(p1, p2), rect_edge, ray=True)
             if point:
                 point_collection.add(point)
@@ -46,26 +49,49 @@ def _preprocess_rect(world, upperleft, lowerright):
     return point_collection
 
 
-def _get_rects(size):
-    """Discretizes the world given a size.  Yields rectangles that cover world."""
+def _gen_rects(size, cellsize=100):
+    """Discretizes the world given a size.
+       Yields rectangles that cover world.
+    """
+    x = 0
+    y = cellsize
+    while x < size.x:
+        while y < size.y:
+            yield Line(Position(x, y), Position(x + cellsize, y + cellsize))
+            y += cellsize
+        y = cellsize
+        x += cellsize
     return []
 
 
-def _visible_walls(world, point_collection):
+def _visible_walls(world, rect, point_collection):
     """Given a set of points, compute (union of) set of walls
        that can be seen from any point in the collection.
+
+       Also includes any wall that crosses the rect boundary.
     """
+
     visible = set()
+
+    # first all the visible walls
     for p in point_collection:
         for wall in world.walls:
             pass  # TODO implement
+
+    # the all walls intersecting the rect
+    for wall in world.walls:
+        for line in _rect_line_iterator(rect):
+            if intersects(wall, rect):
+                visible.add(wall)
     return visible
 
 
 def preprocess(world):
-    """Returns a dict from rectangles to a set of walls that are visible from somewhere in the rect"""
-    rect_visibility = {}
+    """Returns a dict from rectangles to a set of walls that are visible
+       from somewhere in the rect.
+    """
+    visible_walls = {}
     for rect in _gen_rects(world.size):
         point_collection = _preprocess_rect(world, *rect)
-        visible_walls[rect] = _visible_walls(world, point_collection)
+        visible_walls[rect] = _visible_walls(world, rect, point_collection)
     return {}
