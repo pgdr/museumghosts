@@ -5,7 +5,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 pygame.init()
 pygame.display.set_mode(SIZE)
-bg = pygame.image.load("bg.png")
+bg = pygame.image.load("assets/bg.png")
 surface = pygame.display.get_surface()
 
 

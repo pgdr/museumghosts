@@ -1,7 +1,7 @@
 import pygame
 from .geometry import Line, intersects
-
 from .geometry import line_segments
+from .sprites import floor as floor_img
 
 
 def draw_world(surface, world, speed, now):
@@ -9,7 +9,7 @@ def draw_world(surface, world, speed, now):
     walls = world.walls
 
     surface.fill((0, 0, 0))
-    bg = pygame.image.load("floor.png")
+    bg = floor_img
     bg_x, bg_y = bg.get_rect().size
     for i in range(3):
         for j in range(3):

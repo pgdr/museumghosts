@@ -5,20 +5,25 @@ import random
 
 import pygame
 
+from .sprites import guard as guard_img
+from .sprites import ghost as ghost_img
+from .sprites import ghost_dead as ghost_dead_img
+
+
 from .graphics import draw_ghosts, draw_vision
 from .geometry import Position, Line, intersects, crosses_wall
 from .forgetlist import Forgetlist
 
 GHOST_SIZE = Position(24, 24)
-GHOST_PNG = pygame.image.load("g1.png")
+GHOST_PNG = ghost_img
 GHOST_PNG = pygame.transform.scale(GHOST_PNG, GHOST_SIZE.tup)
 
-GHOST_DEAD_PNG = pygame.image.load("g_dead.png")
+GHOST_DEAD_PNG = ghost_dead_img
 GHOST_DEAD_PNG = pygame.transform.scale(GHOST_DEAD_PNG, GHOST_SIZE.tup)
 
 
 GUARD_SIZE = Position(24, 24)
-GUARD_PNG = pygame.image.load("guard.png")
+GUARD_PNG = guard_img
 GUARD_PNG = pygame.transform.scale(GUARD_PNG, GUARD_SIZE.tup)
 
 

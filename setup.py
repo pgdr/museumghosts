@@ -22,7 +22,7 @@ def requirements():
 
 setuptools.setup(
     name="museumghosts",
-    version="0.1.0",
+    version="0.1.1",
     author="pgdr",
     packages=["museumghosts"],
     long_description=readme(),
@@ -30,5 +30,6 @@ setuptools.setup(
     install_requires=requirements(),
     tests_require=list(requirements()) + ["pytest"],
     entry_points={"console_scripts": ["museumghosts=museumghosts:main"]},
+    include_package_data=True,
     test_suite="tests",
 )
