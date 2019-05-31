@@ -40,7 +40,7 @@ def draw_world(surface, world, speed, now):
 def draw_vision(surface, world):
     player = world.player
     walls = world.walls
-    for segment in line_segments(world):
+    for segment in line_segments(player.pos, walls):
         triangle = player.pos.tup, segment.p1.tup, segment.p2.tup
         pygame.draw.polygon(surface, (255, 255, 255), triangle)
         # the following lines (literally) are to pad between juxtaposed polygons

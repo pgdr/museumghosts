@@ -127,12 +127,11 @@ def _crossing_lines(lines):
                 yield (l2, p)
 
 
-def line_point_collection(world):
+def line_point_collection(pov, walls):
     """Return all points that intersects the ray formed from
        the player to an edge.
     """
-    pov = world.player.pos
-    lines = [wall.line for wall in world.walls]
+    lines = [wall.line for wall in walls]
     point_collection = {line: set([line.p1, line.p2]) for line in lines}
 
     for l, p in _crossing_lines(lines):
@@ -150,9 +149,9 @@ def line_point_collection(world):
     return point_collection
 
 
-def _is_point_visible(world, belonging_wall, point):
-    ray = Line(world.player.pos, point)
-    for wall in world.walls:
+def _is_point_visible(pov, walls, belonging_wall, point):
+    ray = Line(pov, point)
+    for wall in walls:
         if wall.line == belonging_wall:
             continue
         if intersects(ray, wall, ray=False):
@@ -164,18 +163,18 @@ def _mid_point(line):
     return Position((line.p1.x + line.p2.x) / 2, (line.p1.y + line.p2.y) / 2)
 
 
-def line_segments(world, visible=True):
+def line_segments(pov, walls, visible=True):
     """Return all the line segments that are formed by the intersection points
        from the visible ray.
     """
-    point_collection = line_point_collection(world)
+    point_collection = line_point_collection(pov, walls)
 
     for wall, isects in point_collection.items():
         line = sorted(isects)
         for idx in range(len(line) - 1):
             segment = Line(line[idx], line[idx + 1])
             if visible:
-                if _is_point_visible(world, wall, _mid_point(segment)):
+                if _is_point_visible(pov, walls, wall, _mid_point(segment)):
                     yield segment
             else:
                 yield segment
