@@ -127,10 +127,10 @@ class Player(Particle):
         vision = self.vision if vision is None else vision
         return Player(pos, direction, vision)
 
-    def draw(self, surface, world, speed=0):
+    def draw(self, surface, walls, ghosts, speed=0):
         color = (255, 0, 0)
-        draw_vision(surface, world)
-        draw_ghosts(surface, world)
+        draw_vision(surface, self.pos, walls)
+        draw_ghosts(surface, self.pos, walls, ghosts)
         surface.blit(GUARD_PNG, (self.pos - GUARD_SIZE / 2).tup)
 
     def freeze(self):

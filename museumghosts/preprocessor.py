@@ -1,6 +1,6 @@
 import itertools
 from .gameobjects import Wall
-from .geometry import intersects, Line, Position
+from .geometry import intersects, Line, Position, line_segments
 
 
 def _rect_line_iterator(rect):
@@ -54,12 +54,12 @@ def _gen_rects(size, cellsize=100):
        Yields rectangles that cover world.
     """
     x = 0
-    y = cellsize
+    y = 0
     while x < size.x:
         while y < size.y:
             yield Line(Position(x, y), Position(x + cellsize, y + cellsize))
             y += cellsize
-        y = cellsize
+        y = 0
         x += cellsize
     return []
 
@@ -75,8 +75,17 @@ def _visible_walls(world, rect, point_collection):
 
     # first all the visible walls
     for p in point_collection:
+        # for wall in world.walls:
+        segs = line_segments(p, world.walls, visible=True)
         for wall in world.walls:
-            pass  # TODO implement
+            for seg in segs:
+                p1, p2 = seg
+                if intersects(
+                    wall,
+                    Line(p1 + Position(0.01, 0.01), p2 - Position(0.01, 0.01)),
+                    ray=False,
+                ):
+                    visible.add(wall)
 
     # the all walls intersecting the rect
     for wall in world.walls:
@@ -93,5 +102,7 @@ def preprocess(world):
     visible_walls = {}
     for rect in _gen_rects(world.size):
         point_collection = _preprocess_rect(world, *rect)
-        visible_walls[rect] = _visible_walls(world, rect, point_collection)
-    return {}
+        visible_walls[(rect.p1, rect.p2)] = _visible_walls(
+            world, rect, point_collection
+        )
+    return visible_walls

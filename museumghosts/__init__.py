@@ -5,6 +5,8 @@ from .gameobjects import World, Wall, Particle, Ghost, Explosion
 from .forgetlist import Forgetlist
 from .geometry import Position, Line, line_point_collection, line_segments
 
+from .preprocessor import preprocess
+
 
 def main():
 

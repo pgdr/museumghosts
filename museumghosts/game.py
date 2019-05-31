@@ -6,7 +6,7 @@ from .forgetlist import Forgetlist
 from .geometry import Position, Line
 from .util import randpos, randline
 from .graphics import draw_world
-
+from .preprocessor import preprocess
 from .mazegen import random_maze
 
 _WIDTH = 1100
@@ -68,8 +68,8 @@ def maze():
 
     for p1, p2 in M.edges:
         line = Line(
-            Position(*p1) * scal + Position(100, 100),
-            Position(*p2) * scal + Position(100, 100),
+            Position(*p1) * scal + Position(103, 103),
+            Position(*p2) * scal + Position(103, 103),
         )
         yield Wall(line)
 
@@ -182,6 +182,7 @@ def collision_detection(world):
 
 def game_loop(surface):
     world = setup_game()
+    wall_cache = preprocess(world)
     clock = pygame.time.Clock()
 
     handlers = {
@@ -212,5 +213,5 @@ def game_loop(surface):
 
         world = world.but(ghosts=_update_ghosts(world, now, elapsed))
 
-        draw_world(surface, world, speed=0, now=now)
+        draw_world(surface, world, wall_cache, speed=0, now=now)
         clock.tick(50)
