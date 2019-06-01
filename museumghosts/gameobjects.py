@@ -1,5 +1,4 @@
 import math
-from dataclasses import dataclass, field
 import time
 import random
 import pygame
@@ -29,14 +28,14 @@ GUARD_PNG = pygame.transform.scale(GUARD_PNG, GUARD_SIZE.tup)
 TAU = 2 * math.pi
 
 
-@dataclass(frozen=True)
 class World:
-    size: Position
-    player: list
-    ghosts: list
-    walls: list
-    explosions: Forgetlist
-    history: Forgetlist
+    def __init__(self, size, player, ghosts, walls, explosions, history):
+        self.size = size
+        self.player = player
+        self.ghosts = ghosts
+        self.walls = walls
+        self.explosions = explosions
+        self.history = history
 
     def but(
         self,
@@ -74,7 +73,7 @@ class World:
             if ghost.is_dead:
                 continue
             if self._intersects_ghost(ray, ghost):
-                nghosts = self.ghosts[:idx] + [ghost.kill()] + self.ghosts[idx+1:]
+                nghosts = self.ghosts[:idx] + [ghost.kill()] + self.ghosts[idx + 1 :]
 
                 return self.but(
                     ghosts=nghosts,
@@ -83,25 +82,44 @@ class World:
         return self
 
 
-@dataclass(frozen=True, eq=True)
 class Wall:
-    line: Line
+    def __init__(self, line):
+        self.line = line
+
+    def __eq__(self, other):
+        if not isinstance(other, Wall):
+            return NotImplemented
+        return self.line == other.line
+
+    def __hash__(self):
+        return hash(self.line)
 
     def draw(self, surface):
         p1, p2 = self.line
         pygame.draw.line(surface, (255, 255, 255), p1.tup, p2.tup, 5)
 
 
-@dataclass(frozen=True)
 class Particle:
-    pos: Position
+    def __init__(self, pos):
+        self.pos = pos
+
+    def __eq__(self, other):
+        if not isinstance(other, Particle):
+            return NotImplemented
+        return self.pos == other.pos
+
+    def __hash__(self):
+        return hash(self.pos)
+
+    def __repr__(self):
+        return f"Particle({self.pos})"
 
 
-@dataclass(frozen=True)
 class Player(Particle):
-
-    direction: Position = Position(0, 0)
-    vision: Position = Position(0, 0)
+    def __init__(self, pos, direction=Position(0, 0), vision=Position(0, 0)):
+        super(Player, self).__init__(pos)
+        self.direction = direction
+        self.vision = vision
 
     def but(self, pos=None, direction=None, vision=None):
         pos = self.pos if pos is None else pos
@@ -158,12 +176,12 @@ def _random_direction():
     return Position(1 - 2 * random.random(), 1 - 2 * random.random()) / 5
 
 
-@dataclass(frozen=True)
 class Ghost:
-    particle: Particle
-    time: float = 0
-    direction: Position = field(default_factory=_random_direction)
-    is_dead: bool = False
+    def __init__(self, particle, time=0.0, direction=None, is_dead=False):
+        self.particle = particle
+        self.time = time
+        self.direction = _random_direction() if direction is None else direction
+        self.is_dead = is_dead
 
     def but(self, particle=None, time=None, direction=None, is_dead=None):
         return Ghost(
@@ -231,11 +249,11 @@ class Ghost:
         return [self.but(particle=partic, direction=direction)]
 
 
-@dataclass(frozen=True)
 class Explosion:
-    ray: Line
-    start: float
-    ttl: float
+    def __init__(self, ray, start, ttl):
+        self.ray = ray
+        self.start = start
+        self.ttl = ttl
 
     def draw(self, surface, now):
         if not self.alive(now):
