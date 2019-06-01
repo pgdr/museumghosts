@@ -9,8 +9,8 @@ from .graphics import draw_world
 
 from .mazegen import random_maze
 
-_WIDTH = 1000
-_HEIGHT = 600
+_WIDTH = 1100
+_HEIGHT = 700
 SIZE = Position(_WIDTH, _HEIGHT)
 
 
@@ -42,7 +42,7 @@ def merge(e1, e2):
 
 
 def maze():
-    scal = 280
+    scal = 200
     M = random_maze(*(SIZE // scal).tup)
 
     edges = set(M.edges)
@@ -94,6 +94,10 @@ def setup_game():
         Ghost(Particle(randpos(SIZE))),
         Ghost(Particle(randpos(SIZE))),
         Ghost(Particle(randpos(SIZE))),
+        Ghost(Particle(randpos(SIZE))),
+        Ghost(Particle(randpos(SIZE))),
+        Ghost(Particle(randpos(SIZE))),
+        Ghost(Particle(randpos(SIZE))),
     ]
 
     bnw = Position(0, 0)
@@ -121,12 +125,10 @@ def setup_game():
 
 def _update_ghosts(world, now, elapsed=50):
     ghosts = []
+
     for ghost in world.ghosts:
         ghosts += ghost.tick(world.size, now, elapsed)
-    dead = []
 
-    for idx in dead:
-        ghosts[idx] = ghosts[idx].kill()
     return ghosts
 
 
@@ -174,7 +176,7 @@ def _exit_if_done(world):
 def collision_detection(world):
     player = world.player
     for ghost in world.ghosts:
-        if player.pos.dist(ghost.pos) <= max(ghost.size):
+        if not ghost.is_dead and player.pos.dist(ghost.pos) <= max(ghost.size):
             exit("collision dead")
 
 
