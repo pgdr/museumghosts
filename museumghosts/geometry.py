@@ -1,11 +1,10 @@
-from dataclasses import dataclass
 import math
 
 
-@dataclass(frozen=True, eq=True, order=True)
 class Position:
-    x: int
-    y: int
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
 
     def __add__(self, other: "Position") -> "Position":
         return Position(self.x + other.x, self.y + other.y)
@@ -55,15 +54,37 @@ class Position:
             min(max(padding, self.y), size.y - padding),
         )
 
+    def __eq__(self, other):
+        if not isinstance(other, Position):
+            return NotImplemented
+        return self.x == other.x and self.y == other.y
 
-@dataclass(frozen=True, eq=True)
+    def __hash__(self):
+        return hash((self.x, self.y))
+
+    def __lt__(self, other):
+        return self.tup < other.tup
+
+
 class Line:
-    p1: Position
-    p2: Position
+    def __init__(self, p1, p2):
+        self.p1 = p1
+        self.p2 = p2
 
     def __iter__(self):
         yield self.p1
         yield self.p2
+
+    def __eq__(self, other):
+        if not isinstance(other, Line):
+            return NotImplemented
+        return self.p1 == other.p1 and self.p2 == other.p2
+
+    def __hash__(self):
+        return hash((hash(self.p1), hash(self.p2)))
+
+    def __repr__(self):
+        return f"Line({self.p1}, {self.p2})"
 
 
 def intersects(line1, line2, ray=True):

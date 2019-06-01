@@ -1,12 +1,11 @@
 import time
-import dataclasses
 
 
 class Forgetlist:
-    @dataclasses.dataclass(frozen=True)
     class _Node:
-        payload: object
-        timestamp: float
+        def __init__(self, payload, timestamp):
+            self.payload = payload
+            self.timestamp = timestamp
 
     def __init__(self, duration, clock=None, maxsize=2 ** 16):
         self._duration = duration
