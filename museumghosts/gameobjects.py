@@ -2,7 +2,6 @@ import math
 from dataclasses import dataclass, field
 import time
 import random
-
 import pygame
 
 from .sprites import guard as guard_img
@@ -70,10 +69,15 @@ class World:
     def fire(self, now):
         player = self.player
         ray = Line(player.pos, player.vision)
-        for ghost in self.ghosts:
+        for idx in range(len(self.ghosts)):
+            ghost = self.ghosts[idx]
+            if ghost.is_dead:
+                continue
             if self._intersects_ghost(ray, ghost):
+                nghosts = self.ghosts[:idx] + [ghost.kill()] + self.ghosts[idx+1:]
+
                 return self.but(
-                    ghosts=self.ghosts.remove(ghost),
+                    ghosts=nghosts,
                     explosions=self.explosions.append(Explosion(ray, now, 3)),
                 )
         return self
@@ -185,11 +189,13 @@ class Ghost:
         return self.but(is_dead=True)
 
     def tick(self, size, now, elapsed):
+        """Surprisingly returns a list of ghosts to replace this.
+        """
         width, height = size.x, size.y
         dist = self.direction * elapsed
         partic = self.particle
         if self.is_dead:
-            return [self.but(particle=partic)]
+            return [self]
 
         npos = self.pos + dist
         direction = self.direction
