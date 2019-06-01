@@ -36,6 +36,7 @@ def _preprocess_rect(world, upperleft, lowerright):
        points.
 
     """
+    EPSILON = Position(0.01, 0.01)
     x1, y1 = upperleft
     x2, y2 = lowerright
     rect_lines = _rect_line_iterator((upperleft, lowerright))
@@ -44,7 +45,8 @@ def _preprocess_rect(world, upperleft, lowerright):
         for rect_edge in rect_lines:
             point = intersects(Line(p1, p2), rect_edge, ray=True)
             if point:
-                point_collection.add(point)
+                point_collection.add(point + EPSILON)
+                point_collection.add(point - EPSILON)
 
     return point_collection
 
@@ -87,17 +89,18 @@ def _visible_walls(world, rect, point_collection):
                 ):
                     visible.add(wall)
 
-    # the all walls intersecting the rect
+    # all walls intersecting the rect
     for wall in world.walls:
         for line in _rect_line_iterator(rect):
             if intersects(wall, rect):
                 visible.add(wall)
+
     return visible
 
 
 def preprocess(world):
-    """Returns a dict from rectangles to a set of walls that are visible
-       from somewhere in the rect.
+    """Returns a dict from rectangles to a set of walls that are
+       potentially visible from somewhere in the rect.
     """
     visible_walls = {}
     for rect in _gen_rects(world.size):

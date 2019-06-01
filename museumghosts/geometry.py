@@ -65,6 +65,9 @@ class Position:
     def __lt__(self, other):
         return self.tup < other.tup
 
+    def __repr__(self):
+        return f"Position({self.x}, {self.y})"
+
 
 class Line:
     def __init__(self, p1, p2):
