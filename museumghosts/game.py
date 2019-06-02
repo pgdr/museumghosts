@@ -1,4 +1,3 @@
-import time
 import pygame
 
 from .gameobjects import World, Wall, Particle, Player, Ghost, Explosion
@@ -8,6 +7,7 @@ from .util import randpos, randline
 from .graphics import draw_world
 
 from .mazegen import random_maze
+
 
 _WIDTH = 1100
 _HEIGHT = 700
@@ -212,5 +212,5 @@ def game_loop(surface):
 
         world = world.but(ghosts=_update_ghosts(world, now, elapsed))
 
-        draw_world(surface, world, speed=0, now=now)
+        draw_world(surface, world, now=now)
         clock.tick(50)

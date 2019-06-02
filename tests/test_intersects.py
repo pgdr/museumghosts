@@ -44,7 +44,7 @@ def test_line_point_intersect_keys():
     botline = Line(Position(1, 3), Position(8, 3))
     pov = Particle(Position(4, 9))
     w = _world().but(walls=[Wall(topline), Wall(botline)], player=pov)
-    isects = line_point_collection(w)
+    isects = line_point_collection(w.player.pos, w.walls)
 
     assert set(isects.keys()) == set([topline, botline])
 
@@ -54,7 +54,7 @@ def test_line_point_intersect_types():
     botline = Line(Position(1, 3), Position(8, 3))
     pov = Particle(Position(4, 9))
     w = _world().but(walls=[Wall(topline), Wall(botline)], player=pov)
-    isects = line_point_collection(w)
+    isects = line_point_collection(w.player.pos, w.walls)
     for k, v in isects.items():
         assert isinstance(k, Line)
         for pos in v:
@@ -66,7 +66,7 @@ def test_line_point_intersect():
     botline = Line(Position(1, 3), Position(8, 3))
     pov = Particle(Position(4, 9))
     w = _world().but(walls=[Wall(topline), Wall(botline)], player=pov)
-    isects = line_point_collection(w)
+    isects = line_point_collection(w.player.pos, w.walls)
 
     assert Position(9.3333333333333333, 1) in isects[topline]
     assert Position(4.75, 3) in isects[botline]
@@ -77,7 +77,7 @@ def test_line_segments():
     botline = Line(Position(1, 3), Position(8, 3))
     pov = Particle(Position(4, 9))
     w = _world().but(walls=[Wall(topline), Wall(botline)], player=pov)
-    linesegments = list(line_segments(w, visible=False))
+    linesegments = list(line_segments(w.player.pos, w.walls, visible=False))
 
     for l in linesegments:
         assert isinstance(l, Line)
@@ -98,7 +98,7 @@ def test_line_segments_visible():
     botline = Line(Position(1, 3), Position(8, 3))
     pov = Particle(Position(4, 9))
     w = _world().but(walls=[Wall(topline), Wall(botline)], player=pov)
-    linesegments = list(line_segments(w, visible=True))
+    linesegments = list(line_segments(w.player.pos, w.walls, visible=True))
 
     for l in linesegments:
         assert isinstance(l, Line)
@@ -119,7 +119,7 @@ def test_lines_intersecting():
     pov = Position(3, 2)
     w = _world().but(walls=[Wall(l1), Wall(l2)], player=Particle(pov))
 
-    col = line_point_collection(w)
+    col = line_point_collection(w.player.pos, w.walls)
     assert len(col) == 2
     assert Position(x=1.8, y=2.6) in col[l1]
     assert Position(x=1.8, y=1.4) in col[l2]

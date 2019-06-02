@@ -1,5 +1,4 @@
 import math
-import time
 import random
 import pygame
 
@@ -7,10 +6,9 @@ from .sprites import guard as guard_img
 from .sprites import ghost as ghost_img
 from .sprites import ghost_dead as ghost_dead_img
 
-
 from .graphics import draw_ghosts, draw_vision
 from .geometry import Position, Line, intersects, crosses_wall
-from .forgetlist import Forgetlist
+
 
 GHOST_SIZE = Position(24, 24)
 GHOST_PNG = ghost_img
@@ -127,8 +125,7 @@ class Player(Particle):
         vision = self.vision if vision is None else vision
         return Player(pos, direction, vision)
 
-    def draw(self, surface, world, speed=0):
-        color = (255, 0, 0)
+    def draw(self, surface, world):
         draw_vision(surface, world)
         draw_ghosts(surface, world)
         surface.blit(GUARD_PNG, (self.pos - GUARD_SIZE / 2).tup)
@@ -137,7 +134,7 @@ class Player(Particle):
         return self.but(direction=Position(0, 0))
 
     def _move(self, world, npos, direction):
-        if crosses_wall(world, Line(self.pos, npos)):
+        if crosses_wall(world.walls, Line(self.pos, npos)):
             return self.freeze().but(pos=self.pos).inside(world)
         return self.but(pos=npos, direction=direction).inside(world)
 

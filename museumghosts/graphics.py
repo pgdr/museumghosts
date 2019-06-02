@@ -4,7 +4,7 @@ from .geometry import line_segments
 from .sprites import floor as floor_img
 
 
-def draw_world(surface, world, speed, now):
+def draw_world(surface, world, now):
     player = world.player
     walls = world.walls
 
@@ -22,7 +22,7 @@ def draw_world(surface, world, speed, now):
     vision_surface.fill((20, 20, 20))
     vision_surface.set_alpha(100)
 
-    player.draw(vision_surface, world=world, speed=speed)
+    player.draw(vision_surface, world=world)
 
     # invert vision polygon
     pixels = pygame.surfarray.pixels2d(vision_surface)
@@ -40,7 +40,7 @@ def draw_world(surface, world, speed, now):
 def draw_vision(surface, world):
     player = world.player
     walls = world.walls
-    for segment in line_segments(world):
+    for segment in line_segments(player.pos, walls):
         triangle = player.pos.tup, segment.p1.tup, segment.p2.tup
         pygame.draw.polygon(surface, (255, 255, 255), triangle)
         # the following lines (literally) are to pad between juxtaposed polygons
