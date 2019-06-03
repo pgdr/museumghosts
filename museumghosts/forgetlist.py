@@ -66,4 +66,4 @@ class Forgetlist:
 
     def __str__(self):
         elts = ",".join([str(x) for x in self])
-        return f"<{self.now()} ⏱ [{elts}]>"
+        return "<{} ⏱ [{}]>".format(self.now(), elts)

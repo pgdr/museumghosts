@@ -110,7 +110,7 @@ class Particle:
         return hash(self.pos)
 
     def __repr__(self):
-        return f"Particle({self.pos})"
+        return "Particle({})".format(self.pos)
 
 
 class Player(Particle):

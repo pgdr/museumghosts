@@ -84,7 +84,7 @@ class Line:
         return hash((hash(self.p1), hash(self.p2)))
 
     def __repr__(self):
-        return f"Line({self.p1}, {self.p2})"
+        return "Line({}, {})".format(self.p1, self.p2)
 
 
 def intersects(line1, line2, ray=True):
