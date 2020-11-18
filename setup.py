@@ -17,12 +17,12 @@ def readme():
 
 
 def requirements():
-    return _read_file("requirements.txt", lambda lines: "".join(lines))
+    return ["pygame", "numpy"]
 
 
 setuptools.setup(
     name="museumghosts",
-    version="0.1.1",
+    version="0.1.3",
     author="pgdr",
     packages=["museumghosts"],
     long_description=readme(),
