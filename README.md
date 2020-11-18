@@ -2,6 +2,10 @@
 
 a game of life and death
 
+to play, simply install `pip install museumghosts` and run `museumghosts`!
+
+You control the guard with `wasd` and shoot laser beams with mouse pointer!  Aim at the ghosts.
+
 look: 👻
 
-![screenshot](https://raw.githubusercontent.com/pgdr/museumghosts/master/ghost-screenshot.png)
+![screenshot](museumghosts/assets/ghost-screenshot.png)
